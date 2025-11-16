@@ -18,8 +18,10 @@ export default function LinksLayout() {
       />
       <Stack.Screen
         name='supplier/[id]'
-        options={{ title: 'Supplier details' }}
-        presentation='modal'
+        options={{
+          title: 'Supplier details',
+          presentation: 'modal'
+        }}
       />
     </Stack>
   );
