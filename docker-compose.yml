@@ -1,8 +1,8 @@
-version: '3.8'
-
 services:
   api:
-    build: ./api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./api:/app
@@ -11,19 +11,22 @@ services:
     environment:
       - DB_NAME=scp_db
       - DB_USER=scp_user
-      - DB_PASSWORD=scp_pass
+      - DB_PASSWORD=password123
       - DB_HOST=db
+      - DB_PORT=5432
     depends_on:
       - db
 
   db:
-    image: postgres:14-alpine
+    image: postgres:16
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_DB=scp_db
       - POSTGRES_USER=scp_user
-      - POSTGRES_PASSWORD=scp_pass
+      - POSTGRES_PASSWORD=password123
+    ports:
+      - "5432:5432"
 
 volumes:
   postgres_data:
