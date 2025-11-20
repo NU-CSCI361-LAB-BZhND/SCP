@@ -6,20 +6,22 @@ from .models import User
 class CustomUserAdmin(UserAdmin):
 
     model = User
-    list_display = ('email', 'role', 'is_staff', 'is_superuser')
-    list_filter = ('role', 'is_staff', 'is_superuser')
+    list_display = ('email', 'role', 'supplier', 'consumer', 'is_staff', 'is_superuser')
+    list_filter = ('role', 'is_staff', 'is_superuser', 'supplier', 'consumer')
 
     # This configures the editing page
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Permissions', {'fields': ('role', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Company Info', {'fields': ('role', 'supplier', 'consumer')}),
+        ('Permissions', {'fields': ('is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 
     # This configures the "add user" page
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password', 'password2', 'role'),
+            'fields': ('email', 'password', 'password2', 'role', 'supplier', 'consumer'),
         }),
     )
     search_fields = ('email',)

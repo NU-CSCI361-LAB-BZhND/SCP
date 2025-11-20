@@ -2,6 +2,13 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 # Create your models here.
+# User roles
+class UserRole(models.TextChoices):
+    OWNER = 'OWNER', 'Owner'
+    MANAGER = 'MANAGER', 'Manager'
+    SALES_REP = 'SALES_REP', 'Sales Representative'
+    CONSUMER = 'CONSUMER', 'Consumer'
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -25,18 +32,24 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
-# User roles
-class UserRole(models.TextChoices):
-    OWNER = 'OWNER', 'Owner'
-    MANAGER = 'MANAGER', 'Manager'
-    SALES_REP = 'SALES_REP', 'Sales Representative'
-    CONSUMER = 'CONSUMER', 'Consumer'
-
-
 class User(AbstractUser):
     username = None # We use email as username
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=20, choices=UserRole.choices, default=UserRole.CONSUMER)
+    supplier = models.ForeignKey(
+        'companies.Supplier',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='staff'
+    )
+    consumer = models.ForeignKey(
+        'companies.Consumer',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='staff'
+    )
     USERNAME_FIELD = 'email' # We use email as username
     REQUIRED_FIELDS = []
     objects = CustomUserManager()
