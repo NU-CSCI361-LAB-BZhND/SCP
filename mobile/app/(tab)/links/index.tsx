@@ -1,10 +1,11 @@
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
-import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
+import { FlatList, ScrollView, Text, View } from 'react-native';
+import OpacityPressable from '@/components/opacitypressable';
 import { LinkStatus } from '@/types/link';
 import type { IndexSearchParams } from '@/types/index';
 import type { SupplierInfo } from '@/types/supplier';
 
-function SupplierIndex() {
+function SupplierLinks() {
   return (
     <View>
       <Text>THIS IS SUPPLIER</Text>
@@ -16,32 +17,13 @@ function SupplierEntry({ info }: { info: SupplierInfo }) {
   const router = useRouter();
   const { id, name, description, status } = info;
   return (
-    <Pressable onPress={() => router.push(`/links/supplier/${id}`)}>
-      {({pressed}) => (
-        <View
-          style={{
-            backgroundColor: '#e5e5e5',
-            borderRadius: 10,
-            padding: 10,
-            opacity: pressed ? 0.5 : 1,
-            margin: 5,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-            }}
-          >
-            <Text selectable={false} style={{ fontSize: 20 }}>{name}</Text>
-            <Text selectable={false} style={{ flexShrink: 0 }}>
-              Link status: {status}
-            </Text>
-          </View>
-          <Text selectable={false}>{description}</Text>
-        </View>
-      )}
-    </Pressable>
+    <OpacityPressable onPress={() => router.push(`/links/supplier/${id}`)}>
+      <Text selectable={false} style={{ fontSize: 20 }}>{name}</Text>
+      <Text selectable={false} style={{ flexShrink: 0 }}>
+        Link status: {status}
+      </Text>
+      <Text selectable={false}>{description}</Text>
+    </OpacityPressable>
   );
 }
 
@@ -64,9 +46,15 @@ export const SUPPLIERS: SupplierInfo[] = [
     description: 'Description C',
     status: LinkStatus.None,
   },
+  {
+    id: 4,
+    name: 'Supplier D',
+    description: 'Description D',
+    status: LinkStatus.Approved,
+  },
 ];
 
-function ConsumerIndex() {
+function ConsumerLinks() {
   return (
     <FlatList
       style={{ padding: 5 }}
@@ -80,8 +68,8 @@ function ConsumerIndex() {
 export default function Links() {
   const { as } = useLocalSearchParams<IndexSearchParams>();
   switch (as) {
-    case 'supplier': return <SupplierIndex/>;
-    case 'consumer': return <ConsumerIndex/>;
+    case 'supplier': return <SupplierLinks/>;
+    case 'consumer': return <ConsumerLinks/>;
     default: return <Redirect href='/login'/>;
   }
 };

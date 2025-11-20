@@ -15,11 +15,12 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
-        name='items'
+        name='orders'
         options={{
-          title: "Items",
+          title: "Orders",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="inventory" color={color} size={size}/>
+            <MaterialIcons name="shopping-cart" color={color} size={size}/>
           )
         }}
       />
