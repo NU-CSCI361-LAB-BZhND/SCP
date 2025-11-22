@@ -1,106 +1,68 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useRBAC } from '@/context/RBACContext';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import IfAllowed from '@/components/IfAllowed';
+import { useRBAC } from '@/context/RBACContext';
 
-const initialCatalog = [
-  { id: 1, name: 'Widget A', price: 100, stock: 10 },
-  { id: 2, name: 'Widget B', price: 150, stock: 5 },
-];
-
-export default function CatalogPage() {
-  const { hasPageAccess } = useRBAC();
+export default function LoginPage() {
   const router = useRouter();
-  const [catalog, setCatalog] = useState(initialCatalog);
-  const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '' });
+  const { login } = useRBAC();
 
-  useEffect(() => {
-    if (!hasPageAccess('catalog')) router.replace('/unauthorized');
-  }, [hasPageAccess, router]);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleAddProduct = () => {
-    const product = { ...newProduct, id: catalog.length + 1 };
-    setCatalog([...catalog, product]);
-    setNewProduct({ name: '', price: '', stock: '' });
-    // TODO: replace with API POST
-  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  const handleDelete = (id) => {
-    setCatalog(catalog.filter(p => p.id !== id));
-    // TODO: replace with API DELETE
+    let roles = null;
+
+    if (email === 'owner@example.com' && password === 'owner123') {
+      roles = ['OWNER'];
+    } else if (email === 'manager@example.com' && password === 'manager123') {
+      roles = ['MANAGER'];
+    }
+
+    if (roles) {
+      login({ email, roles });
+      router.push('/dashboard');
+    } else {
+      setError('Invalid email or password');
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Catalog</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-800">
+      <div className="bg-white p-10 rounded-xl shadow-xl w-full max-w-md">
+        <h2 className="text-3xl font-bold mb-6 text-center text-gray-900">Login</h2>
 
-      <IfAllowed page="catalog" action="createProduct">
-        <div className="bg-white p-4 rounded shadow space-y-2">
-          <h2 className="font-semibold text-lg">Add Product</h2>
+        {error && <p className="text-red-600 mb-4 text-center">{error}</p>}
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
-            type="text"
-            placeholder="Name"
-            className="border p-2 rounded w-full"
-            value={newProduct.name}
-            onChange={e => setNewProduct({ ...newProduct, name: e.target.value })}
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
           />
+
           <input
-            type="number"
-            placeholder="Price"
-            className="border p-2 rounded w-full"
-            value={newProduct.price}
-            onChange={e => setNewProduct({ ...newProduct, price: e.target.value })}
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
           />
-          <input
-            type="number"
-            placeholder="Stock"
-            className="border p-2 rounded w-full"
-            value={newProduct.stock}
-            onChange={e => setNewProduct({ ...newProduct, stock: e.target.value })}
-          />
+
           <button
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            onClick={handleAddProduct}
+            type="submit"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
           >
-            Add Product
+            Sign In
           </button>
-        </div>
-      </IfAllowed>
-
-      <div className="bg-white rounded shadow p-4">
-        <h2 className="font-semibold text-lg mb-2">Catalog List</h2>
-        <table className="w-full table-auto border-collapse">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2">ID</th>
-              <th className="border p-2">Name</th>
-              <th className="border p-2">Price</th>
-              <th className="border p-2">Stock</th>
-              <th className="border p-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {catalog.map(p => (
-              <tr key={p.id}>
-                <td className="border p-2">{p.id}</td>
-                <td className="border p-2">{p.name}</td>
-                <td className="border p-2">{p.price}</td>
-                <td className="border p-2">{p.stock}</td>
-                <td className="border p-2">
-                  <IfAllowed page="catalog" action="deleteProduct">
-                    <button
-                      className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                      onClick={() => handleDelete(p.id)}
-                    >
-                      Delete
-                    </button>
-                  </IfAllowed>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        </form>
       </div>
     </div>
   );
