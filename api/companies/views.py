@@ -1,7 +1,9 @@
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
-from rest_framework import viewsets, permissions, exceptions
-from .models import Link
-from .serializers import LinkSerializer, LinkCreateSerializer
+from rest_framework import viewsets, permissions, exceptions, generics
+from .models import Link, Supplier
+from .serializers import LinkSerializer, LinkCreateSerializer, SupplierSerializer
+
+
 # Create your views here.
 
 @extend_schema_view(
@@ -77,3 +79,8 @@ class LinkViewSet(viewsets.ModelViewSet):
             raise exceptions.PermissionDenied("Only Consumers can request links.")
 
         serializer.save(consumer=user.consumer)
+
+class SupplierListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = SupplierSerializer
+    queryset = Supplier.objects.all()
