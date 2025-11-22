@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'products.apps.ProductsConfig',
     'users.apps.UsersConfig',
     'companies.apps.CompaniesConfig',
     'rest_framework',
