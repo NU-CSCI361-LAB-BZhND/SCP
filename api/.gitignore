@@ -7,3 +7,6 @@ __pycache__/
 .venv
 
 db.sqlite3
+
+media/*
+!media/.gitkeep

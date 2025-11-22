@@ -3,7 +3,7 @@ from .models import Product
 
 class ProductSerializer(serializers.ModelSerializer):
     supplier_name = serializers.CharField(
-        source='supplier.companyName',
+        source='supplier.company_name',
         read_only=True
     )
     # image_url = serializers.SerializerMethodField()
@@ -19,10 +19,12 @@ class ProductSerializer(serializers.ModelSerializer):
             'price',
             'unit',
             'stock_level',
-            'isAvailable',
-            # 'image',
+            'is_available',
+            'image',
             # 'image_url'
         ]
+
+        read_only_fields = ['supplier']
 
     # def get_image_url(self, obj):
     #     request = self.context.get('request')

@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'products.apps.ProductsConfig',
     'users.apps.UsersConfig',
     'companies.apps.CompaniesConfig',
+    'orders.apps.OrdersConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',

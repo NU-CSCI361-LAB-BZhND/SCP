@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
+
 from .models import Link, Supplier, Consumer
 
 
@@ -35,7 +37,7 @@ class LinkCreateSerializer(serializers.ModelSerializer):
         supplier = attributes['supplier']
 
         if not user.consumer:
-            raise serializers.ValidationError("Only Consumers can request links.")
+            raise PermissionDenied("Only Consumers can request links.")
 
         if Link.objects.filter(consumer=user.consumer, supplier=supplier).exists():
             raise serializers.ValidationError("A link request to this Supplier already exists.")
