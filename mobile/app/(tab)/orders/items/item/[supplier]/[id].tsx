@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Button, ScrollView, Text, TextInput } from 'react-native';
+import { Button, ScrollView, Text } from 'react-native';
 import { ITEMS } from '@/app/(tab)/orders/items/index';
+import BorderedInput from '@/components/borderedinput';
 import type { ItemSearchParams } from '@/types/item';
 
 export default function ItemDetails() {
@@ -16,15 +17,11 @@ export default function ItemDetails() {
       <Text style={{ fontSize: 20 }}>Item name: {name}</Text>
       <Text>Quantity: {quantity}</Text>
       <Text>Description: {description}</Text>
-      <TextInput
-        style={{
-          marginVertical: 10,
-          borderWidth: 1,
-          borderColor: 'black',
-          padding: 5,
-        }}
+      <BorderedInput
+        onChangeText={() => {}}
+        value={'1234'}
+        style={{ marginVertical: 10 }}
         placeholder='Ordering quantity'
-        placeholderTextColor='gray'
         inputMode='numeric'
       />
       <Button
@@ -36,4 +33,4 @@ export default function ItemDetails() {
       />
     </ScrollView>
   );
-}
+};

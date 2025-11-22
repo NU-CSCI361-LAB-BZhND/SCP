@@ -15,11 +15,11 @@ export default function Login() {
         <Text>Enter as:</Text>
         <Button
           title='Supplier'
-          onPress={() => router.replace('/links?as=supplier')}
+          onPress={() => router.push('/login/supplier')}
         />
         <Button
           title='Consumer'
-          onPress={() => router.replace('/links?as=consumer')}
+          onPress={() => router.push('/login/consumer')}
         />
       </View>
     </View>
