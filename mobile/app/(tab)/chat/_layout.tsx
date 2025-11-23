@@ -11,6 +11,8 @@ export default function ChatLayout() {
           headerRight: () => <Logout/>,
         }}
       />
+      <Stack.Screen name='new' options={{ title: 'New chat' }}/>
+      <Stack.Screen name='chat/[id]' options={{ title: 'Chat' }}/>
     </Stack>
   );
 };
