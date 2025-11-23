@@ -45,7 +45,6 @@ export default function SupplierDetails() {
                   { status: LinkStatus.Accepted },
                 )
                 .then(result => {
-                  setInfo(result);
                   context.forceUpdate();
                 }).catch(err => {
                   setError(String(err));

@@ -12,7 +12,11 @@ export default function OrdersLayout() {
         }}
       />
       <Stack.Screen
-        name='order/[id]'
+        name='supplier/[id]'
+        options={{ title: 'Order Details' }}
+      />
+      <Stack.Screen
+        name='consumer/[id]'
         options={{ title: 'Order Details' }}
       />
     </Stack>
