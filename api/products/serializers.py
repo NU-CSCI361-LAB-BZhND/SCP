@@ -19,6 +19,8 @@ class ProductSerializer(serializers.ModelSerializer):
             'price',
             'unit',
             'stock_level',
+            'discount_price',
+            'min_order_qty'
             'is_available',
             'image',
             # 'image_url'

@@ -83,8 +83,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                 except Product.DoesNotExist:
                     raise serializers.ValidationError(f"Product {product_id} not found or belongs to another supplier.")
 
-                if quantity < 1:
-                    raise serializers.ValidationError(f"You have to order at least 1 item.")
+                if quantity < product.min_order_qty:
+                    raise serializers.ValidationError(f"Product '{product.name}' requires a minimum order of {product.min_order_qty} {product.unit}.")
 
                 if product.stock_level < quantity:
                     raise serializers.ValidationError(
@@ -93,15 +93,17 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                 product.stock_level -= quantity
                 product.save()
 
-                price = product.price
+                final_price = product.price
+                if product.discount_price and product.discount_price > 0:
+                    final_price = product.discount_price
                 OrderItem.objects.create(
                     order=order,
                     product=product,
                     quantity=quantity,
-                    price_at_time_of_order=price
+                    price_at_time_of_order=final_price
                 )
 
-                total_amount += (price * quantity)
+                total_amount += (final_price * quantity)
 
             order.total_amount = total_amount
             order.save()

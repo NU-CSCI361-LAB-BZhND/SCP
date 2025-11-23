@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'companies.apps.CompaniesConfig',
     'orders.apps.OrdersConfig',
+    'support.apps.SupportConfig',
+    'notifications.apps.NotificationsConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',

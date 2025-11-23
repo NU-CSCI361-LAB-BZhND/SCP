@@ -6,8 +6,8 @@ from .models import Supplier, Consumer, Link
 
 @admin.register(Supplier)
 class SupplierAdmin(admin.ModelAdmin):
-    list_display = ('company_name', 'subscription_status', 'created_at')
-    list_filter = ('subscription_status',)
+    list_display = ('company_name', 'is_active', 'created_at')
+    list_filter = ('is_active',)
     search_fields = ('company_name',)
 
 @admin.register(Consumer)

@@ -1,6 +1,8 @@
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
 from rest_framework import viewsets, permissions, exceptions, generics
-from .models import Link, Supplier
+
+from users.models import UserRole
+from .models import Link, Supplier, LinkStatus
 from .serializers import LinkSerializer, LinkCreateSerializer, SupplierSerializer
 
 
@@ -64,12 +66,12 @@ class LinkViewSet(viewsets.ModelViewSet):
         if getattr(self, 'swagger_fake_view', False):
             return Link.objects.none()
         user = self.request.user
+        base_qs = Link.objects.filter(is_active=True)
 
         if user.consumer:
-            return Link.objects.filter(consumer=user.consumer)
+            return base_qs.filter()
         elif user.supplier:
-            return Link.objects.filter(supplier=user.supplier)
-
+            return base_qs.filter(supplier=user.supplier)
         return Link.objects.none()  # Fallback for admins/unassigned
 
     def perform_create(self, serializer):
@@ -80,7 +82,25 @@ class LinkViewSet(viewsets.ModelViewSet):
 
         serializer.save(consumer=user.consumer)
 
+    def perform_update(self, serializer):
+        user = self.request.user
+        new_status = serializer.validated_data.get('status')
+        if user.supplier and new_status == LinkStatus.BLOCKED:
+            if user.role not in [UserRole.OWNER, UserRole.MANAGER]:
+                raise exceptions.PermissionDenied("Only Managers and Owners can block consumers.")
+
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        user = self.request.user
+        if user.supplier:
+            if user.role not in [UserRole.OWNER, UserRole.MANAGER]:
+                raise exceptions.PermissionDenied("Only Managers and Owners can unlink consumers.")
+
+        instance.is_active = False
+        instance.save()
+
 class SupplierListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = SupplierSerializer
-    queryset = Supplier.objects.all()
+    queryset = Supplier.objects.filter(is_active=True)

@@ -39,10 +39,11 @@ class OrderViewSet(viewsets.ModelViewSet):
             return Order.objects.none()
 
         user = self.request.user
+        base_qs = Order.objects.filter(is_active=True)
         if user.consumer:
-            return Order.objects.filter(consumer=user.consumer)
+            return base_qs.filter(consumer=user.consumer)
         elif user.supplier:
-            return Order.objects.filter(supplier=user.supplier)
+            return base_qs.filter(supplier=user.supplier)
 
         return Order.objects.none()
 
@@ -79,3 +80,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                     product = item.product
                     product.stock_level += item.quantity
                     product.save()
+
+    def perform_destroy(self, instance):
+        instance.is_active = False
+        instance.save()

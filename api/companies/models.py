@@ -12,14 +12,15 @@ class LinkStatus(models.TextChoices):
     ACCEPTED = 'ACCEPTED', 'Accepted'
     BLOCKED = 'BLOCKED', 'Blocked'
 
+class DeliveryMethod(models.TextChoices):
+    DELIVERY = 'DELIVERY', 'Delivery Only'
+    PICKUP = 'PICKUP', 'Pickup Only'
+    BOTH = 'BOTH', 'Delivery & Pickup'
+
 class Supplier(models.Model):
     company_name = models.CharField(max_length=255)
     address = models.TextField()
-    subscription_status = models.CharField(
-        max_length=20,
-        choices=SubscriptionStatus.choices,
-        default=SubscriptionStatus.TRIAL
-    )
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -28,6 +29,16 @@ class Supplier(models.Model):
 class Consumer(models.Model):
     company_name = models.CharField(max_length=255)
     address = models.TextField()
+    delivery_options = models.CharField(
+        max_length=20,
+        choices=DeliveryMethod.choices,
+        default=DeliveryMethod.BOTH
+    )
+    lead_time = models.PositiveIntegerField(
+        default=1,
+        help_text="Average days to fulfill an order"
+    )
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

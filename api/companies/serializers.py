@@ -7,7 +7,7 @@ from .models import Link, Supplier, Consumer
 class SupplierSerializer(serializers.ModelSerializer):
     class Meta:
         model = Supplier
-        fields = ['id', 'company_name', 'address', 'subscription_status']
+        fields = ['id', 'company_name', 'address', 'delivery_options', 'lead_time']
 
 
 class ConsumerSerializer(serializers.ModelSerializer):
