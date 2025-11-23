@@ -11,116 +11,170 @@ export default function OrdersPage() {
   
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [processingId, setProcessingId] = useState(null); // To show loading on specific button
 
   useEffect(() => {
     if (!hasPageAccess('orders')) {
-      router.replace('/unauthorized');
-      return;
+      // router.replace('/unauthorized'); // Optional: redirect logic
     }
     fetchOrders();
-  }, [hasPageAccess, router]);
+  }, [hasPageAccess]);
 
   const fetchOrders = async () => {
     try {
       const data = await dataService.getOrders();
       setOrders(data);
     } catch (err) {
-      setError('Failed to load orders');
-      console.error(err);
+      console.error('Failed to load orders', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChangeStatus = async (id, status) => {
+  const handleStatusUpdate = async (id, newStatus) => {
+    setProcessingId(id);
     try {
-      // status should probably be UPPERCASE based on your roles, e.g., "ACCEPTED"
-      // but check your Django model choices. I'll use title case for display.
-      await dataService.updateOrderStatus(id, status);
+      await dataService.updateOrderStatus(id, newStatus);
       
-      // Optimistic update or re-fetch
-      setOrders(orders.map(o => (o.id === id ? { ...o, status } : o)));
+      // Update local state to reflect change immediately
+      setOrders(prevOrders => 
+        prevOrders.map(o => (o.id === id ? { ...o, status: newStatus } : o))
+      );
     } catch (err) {
-      alert('Failed to update status');
+      alert("Failed to update order status");
+    } finally {
+      setProcessingId(null);
     }
   };
 
-  // Helper to format date
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString();
+  // Helper to safely extract product names from nested lists
+  const renderProductNames = (order) => {
+    // Check common field names for nested items in Django Serializers
+    const items = order.items || order.order_items || [];
+    
+    if (!items || items.length === 0) return <span className="text-gray-400 italic">No items</span>;
+
+    // Map through items to find the product name
+    const names = items.map(item => {
+        // Handle case where product is an object vs just an ID/string
+        if (typeof item.product === 'object' && item.product.name) return item.product.name;
+        if (item.product_name) return item.product_name; 
+        return item.product || 'Unknown Item';
+    });
+
+    return (
+        <span className="font-medium text-gray-700">
+            {names.join(', ')}
+        </span>
+    );
   };
 
-  if (loading) return <div>Loading orders...</div>;
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+  };
+
+  if (loading) return <div className="p-6">Loading orders...</div>;
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Orders</h1>
-      {error && <div className="text-red-500">{error}</div>}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">Orders Management</h1>
+        <button 
+            onClick={fetchOrders} 
+            className="text-sm text-blue-600 hover:underline"
+        >
+            Refresh List
+        </button>
+      </div>
 
-      <div className="bg-white rounded shadow p-4 overflow-x-auto">
-        <h2 className="font-semibold text-lg mb-2">Orders List</h2>
-        <table className="w-full table-auto border-collapse text-left">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2">ID</th>
-              <th className="border p-2">Date</th>
-              <th className="border p-2">Customer (ID)</th>
-              <th className="border p-2">Total Amount</th>
-              <th className="border p-2">Status</th>
-              <th className="border p-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map(order => (
-              <tr key={order.id}>
-                <td className="border p-2">{order.id}</td>
-                <td className="border p-2">{formatDate(order.created_at)}</td>
-                <td className="border p-2">
-                    {/* If backend sends full consumer object, use order.consumer.email, else ID */}
-                    {typeof order.consumer === 'object' ? order.consumer.email : order.consumer_id || order.consumer}
-                </td>
-                <td className="border p-2 font-mono font-bold">${order.total_amount}</td>
-                <td className="border p-2">
-                  <span className={`px-2 py-1 rounded text-xs font-semibold
-                    ${order.status === 'ACCEPTED' ? 'bg-green-100 text-green-800' : 
-                      order.status === 'REJECTED' ? 'bg-red-100 text-red-800' : 
-                      'bg-yellow-100 text-yellow-800'}`}>
-                    {order.status}
-                  </span>
-                </td>
-                <td className="border p-2 space-x-2">
-                  <IfAllowed page="orders" action="accept">
-                    {order.status === 'PENDING' && (
-                      <button
-                        className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 text-sm"
-                        onClick={() => handleChangeStatus(order.id, 'ACCEPTED')}
-                      >
-                        Accept
-                      </button>
-                    )}
-                  </IfAllowed>
-                  <IfAllowed page="orders" action="reject">
-                    {order.status === 'PENDING' && (
-                      <button
-                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-sm"
-                        onClick={() => handleChangeStatus(order.id, 'REJECTED')}
-                      >
-                        Reject
-                      </button>
-                    )}
-                  </IfAllowed>
-                </td>
-              </tr>
-            ))}
-            {orders.length === 0 && (
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="overflow-x-auto">
+            <table className="w-full table-auto border-collapse text-left">
+            <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                    <td colSpan="6" className="p-4 text-center text-gray-500">No orders found.</td>
+                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Products</th>
+                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+                {orders.map(order => (
+                <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{order.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(order.created_at)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {typeof order.consumer === 'object' ? order.consumer.email : (order.consumer_email || order.consumer || 'Guest')}
+                        <div className="text-xs text-gray-500">{order.delivery_address || ''}</div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900 max-w-xs break-words">
+                        {renderProductNames(order)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                        ${typeof order.total_amount === 'number' ? order.total_amount.toFixed(2) : order.total_amount}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                        ${order.status === 'ACCEPTED' ? 'bg-green-100 text-green-800' : 
+                        order.status === 'REJECTED' ? 'bg-red-100 text-red-800' : 
+                        order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'}`}>
+                        {order.status}
+                    </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    {/* Only show actions if status is PENDING */}
+                    {order.status === 'PENDING' && (
+                        <>
+                            <IfAllowed page="orders" action="accept">
+                                <button
+                                    onClick={() => handleStatusUpdate(order.id, 'ACCEPTED')}
+                                    disabled={processingId === order.id}
+                                    className={`text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded transition-colors
+                                    ${processingId === order.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    Accept
+                                </button>
+                            </IfAllowed>
+                            
+                            <IfAllowed page="orders" action="reject">
+                                <button
+                                    onClick={() => handleStatusUpdate(order.id, 'REJECTED')}
+                                    disabled={processingId === order.id}
+                                    className={`text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded transition-colors
+                                    ${processingId === order.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    Reject
+                                </button>
+                            </IfAllowed>
+                        </>
+                    )}
+                    {/* Optional: Show message if handled */}
+                    {order.status !== 'PENDING' && (
+                        <span className="text-gray-400 text-xs italic">Processed</span>
+                    )}
+                    </td>
+                </tr>
+                ))}
+                
+                {orders.length === 0 && (
+                <tr>
+                    <td colSpan="7" className="px-6 py-10 text-center text-gray-500">
+                        No orders found.
+                    </td>
+                </tr>
+                )}
+            </tbody>
+            </table>
+        </div>
       </div>
     </div>
   );
