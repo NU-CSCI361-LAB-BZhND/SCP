@@ -6,7 +6,8 @@ import Link from 'next/link';
 import IfAllowed from '@/components/IfAllowed';
 
 export default function DashboardLayout({ children }) {
-  const { isAuthenticated, user } = useRBAC();
+  // Destructure logout function here
+  const { isAuthenticated, user, logout } = useRBAC();
   const router = useRouter();
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export default function DashboardLayout({ children }) {
       <aside className="w-64 bg-gray-800 text-white flex flex-col">
         <div className="p-6 border-b border-gray-700">
           <h1 className="text-xl font-bold">Supplier Dashboard</h1>
-          <p className="text-gray-300 mt-1">{user?.role}</p>
+          <p className="text-gray-300 mt-1 capitalize text-sm">{user?.role?.replace('_', ' ')}</p>
         </div>
 
         <nav className="flex-1 flex flex-col p-4 space-y-2">
@@ -56,6 +57,16 @@ export default function DashboardLayout({ children }) {
             </Link>
           </IfAllowed>
         </nav>
+
+        {/* Logout Section */}
+        <div className="p-4 border-t border-gray-700">
+          <button
+            onClick={logout}
+            className="w-full text-left px-3 py-2 rounded hover:bg-red-600 transition text-gray-200 hover:text-white flex items-center gap-2"
+          >
+            <span>Log Out</span>
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
