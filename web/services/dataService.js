@@ -21,12 +21,13 @@ const handleResponse = async (response) => {
     let errorMessage = 'Request failed';
     try {
       const errorData = await response.json();
-      // Try to find the specific error message
+      // Try to find the specific error message, including nested validation errors
       errorMessage = errorData.detail || errorData.message || JSON.stringify(errorData);
     } catch (e) {
       errorMessage = response.statusText;
     }
-    throw new Error(errorMessage);
+    // Throw an Error object with the message
+    throw new Error(errorMessage); 
   }
   
   // Some endpoints (like DELETE) might return 204 No Content
