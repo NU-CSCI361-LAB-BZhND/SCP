@@ -2,13 +2,10 @@ import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { FlatList, ScrollView, Text, View } from 'react-native';
 import OpacityPressable from '@/components/opacitypressable';
-import { LinkStatus } from '@/types/link';
 import { GlobalContext } from '@/util/context';
 import { callGet } from '@/util/fetch';
 import type { LinkInfo } from '@/types/link';
-import type {
-  LinkedSupplier, SupplierCompany, SupplierInfo,
-} from '@/types/supplier';
+import type { LinkedSupplier, SupplierCompany } from '@/types/supplier';
 
 function SupplierLinks() {
   return (
@@ -31,36 +28,8 @@ function SupplierEntry({ info }: { info: LinkedSupplier }) {
   );
 }
 
-export const SUPPLIERS: SupplierInfo[] = [
-  {
-    id: 1,
-    name: 'Supplier A Supplier A Supplier A Supplier A',
-    description: 'Description A',
-    status: LinkStatus.Approved,
-  },
-  {
-    id: 2,
-    name: 'Supplier B',
-    description: 'Description B',
-    status: LinkStatus.Pending,
-  },
-  {
-    id: 3,
-    name: 'Supplier C',
-    description: 'Description C',
-    status: LinkStatus.None,
-  },
-  {
-    id: 4,
-    name: 'Supplier D',
-    description: 'Description D',
-    status: LinkStatus.Approved,
-  },
-];
-
 function ConsumerLinks() {
   const context = useContext(GlobalContext);
-  const access = context.accessToken!;
   const [suppliers, setSuppliers] = useState<SupplierCompany[]>([]);
   const [links, setLinks] = useState<LinkInfo[]>([]);
   const linkedSuppliers = useMemo(() => {
@@ -76,19 +45,19 @@ function ConsumerLinks() {
   }, [suppliers, links]);
   const router = useRouter();
   useEffect(() => {
-    callGet<SupplierCompany[]>('/api/companies/suppliers/', access)
+    callGet<SupplierCompany[]>('/api/companies/suppliers/', context)
       .then(result => {
         setSuppliers(result);
       }).catch(err => {
         router.navigate('/login');
       });
-    callGet<LinkInfo[]>('/api/companies/links/', access)
+    callGet<LinkInfo[]>('/api/companies/links/', context)
       .then(result => {
         setLinks(result);
       }).catch(err => {
         router.navigate('/login');
       });
-  }, [access, context.update]);
+  }, [context.accessToken, context.update]);
   return (
     <FlatList
       style={{ padding: 5 }}
@@ -101,17 +70,14 @@ function ConsumerLinks() {
 
 export default function Links() {
   const context = useContext(GlobalContext);
-  const maccess = context.accessToken;
-  if (maccess === null) return <Redirect href='/login'/>;
-  const access = maccess!;
   const [role, setRole] = useState<string | null>(null);
   useEffect(() => {
-    callGet<{ role: string }>('/api/auth/me/', access).then(({ role }) => {
+    callGet<{ role: string }>('/api/auth/me/', context).then(({ role }) => {
       setRole(role);
     }).catch(err => {
       setRole('');
     });
-  }, [access]);
+  }, [context.accessToken]);
   switch (role) {
     case 'SALES_REP': return <SupplierLinks/>;
     case 'CONSUMER': return <ConsumerLinks/>;

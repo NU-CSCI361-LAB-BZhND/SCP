@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import BorderedInput from '@/components/borderedinput';
 import { GlobalContext } from '@/util/context';
-import { callMethod } from '@/util/fetch';
+import { callPost } from '@/util/fetch';
 
 type LoginResult = {
   access: string;
@@ -15,9 +15,9 @@ type LoginResult = {
 export default function ConsumerLogin() {
   const router = useRouter();
   const context = useContext(GlobalContext);
-  const [ error,    setError    ] = useState('');
-  const [ email,    setEmail    ] = useState('');
-  const [ password, setPassword ] = useState('');
+  const [error,    setError   ] = useState('');
+  const [email,    setEmail   ] = useState('');
+  const [password, setPassword] = useState('');
 
   return (
     <KeyboardAvoidingView
@@ -51,9 +51,9 @@ export default function ConsumerLogin() {
         <Button
           title='Login'
           onPress={() => {
-            callMethod<LoginResult>(
-              'POST',
+            callPost<LoginResult>(
               '/api/auth/login/',
+              context,
               { email, password },
             ).then(result => {
               router.back();

@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import {
   Button, KeyboardAvoidingView, Platform, Text, View,
 } from 'react-native';
 import BorderedInput from '@/components/borderedinput';
-import { callMethod } from '@/util/fetch';
+import { GlobalContext } from '@/util/context';
+import { callPost } from '@/util/fetch';
 
 type RegisterResult = {
   email: string;
@@ -13,11 +14,12 @@ type RegisterResult = {
 
 export default function ConsumerRegister() {
   const router = useRouter();
-  const [ error,          setError          ] = useState('');
-  const [ email,          setEmail          ] = useState('');
-  const [ password,       setPassword       ] = useState('');
-  const [ companyName,    setCompanyName    ] = useState('');
-  const [ companyAddress, setCompanyAddress ] = useState('');
+  const context = useContext(GlobalContext);
+  const [error,          setError         ] = useState('');
+  const [email,          setEmail         ] = useState('');
+  const [password,       setPassword      ] = useState('');
+  const [companyName,    setCompanyName   ] = useState('');
+  const [companyAddress, setCompanyAddress] = useState('');
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -64,9 +66,9 @@ export default function ConsumerRegister() {
         <Button
           title='Register'
           onPress={() => {
-            callMethod<RegisterResult>(
-              'POST',
+            callPost<RegisterResult>(
               '/api/auth/register/',
+              context,
               {
                 email,
                 password,

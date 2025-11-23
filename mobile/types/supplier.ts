@@ -1,4 +1,3 @@
-import { LinkStatus } from '@/types/link';
 import type { LinkInfo } from '@/types/link';
 
 export enum SubscriptionStatus {
@@ -9,13 +8,6 @@ export enum SubscriptionStatus {
 
 export type SupplierSearchParams = {
   id?: string;
-};
-
-export type SupplierInfo = {
-  id: number;
-  name: string;
-  description: string;
-  status: LinkStatus;
 };
 
 export type SupplierCompany = {
