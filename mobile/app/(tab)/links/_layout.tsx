@@ -11,10 +11,7 @@ export default function LinksLayout() {
           headerRight: () => <Logout/>,
         }}
       />
-      <Stack.Screen
-        name='supplier/[id]'
-        options={{ title: 'Supplier Details' }}
-      />
+      <Stack.Screen name='supplier/[id]' options={{ headerShown: false }}/>
     </Stack>
   );
 }

@@ -11,6 +11,7 @@ export default function OrdersLayout() {
           headerRight: () => <Logout/>,
         }}
       />
+      <Stack.Screen name='new' options={{ headerShown: false }}/>
       <Stack.Screen
         name='items'
         options={{ headerShown: false }}

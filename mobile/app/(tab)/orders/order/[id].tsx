@@ -1,27 +1,54 @@
-import { useLocalSearchParams } from 'expo-router';
-import { Text, View } from 'react-native';
-import { SUPPLIERS } from '@/app/(tab)/links/index';
-import { ORDERS } from '@/app/(tab)/orders/index';
-import { ITEMS } from '@/app/(tab)/orders/items/index';
-import type { OrderSearchParams } from '@/types/order';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useContext, useEffect, useState } from 'react';
+import { FlatList, Text, View } from 'react-native';
+import { GlobalContext } from '@/util/context';
+import { callGet } from '@/util/fetch';
+import type { OrderItem, OrderRead, OrderSearchParams } from '@/types/order';
+
+function Product({ info }: { info: OrderItem }) {
+  return (
+    <View
+      style={{
+        backgroundColor: '#e5e5e5',
+        borderRadius: 10,
+        padding: 10,
+        margin: 5,
+      }}
+    >
+      <Text style={{ fontSize: 20 }}>{info.product_name}</Text>
+      <Text>Price at time of order: {info.price_at_time_of_order}</Text>
+      <Text>Total price: {info.total_price}</Text>
+      <Text>Quantity: {info.quantity} {info.product_unit}</Text>
+    </View>
+  );
+}
 
 export default function OrderDetails() {
   const { id: sid = undefined! } = useLocalSearchParams<OrderSearchParams>();
   const id = +sid;
-  const order = ORDERS.find(order => order.id == id)!;
-  const item =
-    ITEMS.find(it => it.id == order.item && it.supplier == order.supplier)!;
-  const supplier = SUPPLIERS.find(supplier => supplier.id == order.supplier)!;
+  const context = useContext(GlobalContext);
+  const router = useRouter();
+  const [morder, setOrder] = useState<OrderRead | null>(null);
+  useEffect(() => {
+    callGet<OrderRead>(`/api/orders/${id}/`, context).then(result => {
+      setOrder(result);
+    }).catch(err => {
+      router.back();
+      context.forceUpdate();
+    });
+  }, [context.accessToken, context.update]);
+  if (!morder) return <Text>LOADING</Text>;
+  const order = morder!;
   return (
     <View style={{ padding: 10 }}>
-      <Text style={{ fontSize: 20 }}>Item: {item.name}</Text>
-      <Text>Description: {item.description}</Text>
-      <View style={{ marginTop: 20 }}/>
-      <Text style={{ fontSize: 20 }}>Supplier: {supplier.name}</Text>
-      <Text>Description: {supplier.description}</Text>
-      <View style={{ marginTop: 20 }}/>
-      <Text>Order status: {order.status}</Text>
-      <Text>Quantity: {order.quantity}</Text>
+      <Text style={{ fontSize: 20 }}>Supplier: {order.supplier_name}</Text>
+      <Text>Status: {order.status}</Text>
+      <Text>Total amount: {order.total_amount}</Text>
+      <FlatList
+        data={order.items}
+        renderItem={({item}) => <Product info={item}/>}
+        keyExtractor={item => String(item.id)}
+      />
     </View>
   );
 }
