@@ -13,8 +13,10 @@ function ChatPreview({ chat, supplier }: { chat: Chat, supplier: boolean }) {
       <Text selectable={false} style={{ fontSize: 20 }}>
         {supplier ? chat.consumer_name : chat.supplier_name}
       </Text>
-      <Text selectable={false}>Last: {chat.last_message.created_at}</Text>
-      <Text selectable={false}>{chat.last_message.text}</Text>
+      { chat.last_message !== null &&
+        <Text selectable={false}>Last: {chat.last_message!.created_at}</Text>}
+      { chat.last_message !== null &&
+        <Text selectable={false}>{chat.last_message.text}</Text>}
     </OpacityPressable>
   );
 }
