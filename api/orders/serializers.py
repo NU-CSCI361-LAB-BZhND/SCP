@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from django.db import transaction
-from .models import Order, OrderItem
+from .models import Order, OrderItem, OrderDeliveryMethod
 from products.models import Product
-from companies.models import Link, LinkStatus
+from companies.models import Link, LinkStatus, DeliveryMethod
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -35,7 +35,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['supplier', 'items']
+        fields = ['supplier', 'items', 'delivery_method']
 
     def validate(self, attrs):
         """
@@ -43,6 +43,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         """
         user = self.context['request'].user
         supplier = attrs['supplier']
+        chosen_method = attrs.get('delivery_method', OrderDeliveryMethod.DELIVERY)
 
         if not user.consumer:
             raise serializers.ValidationError("Only Consumers can place orders.")
@@ -56,6 +57,14 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         if not has_link:
             raise serializers.ValidationError("You do not have an active link with this Supplier.")
 
+        if supplier.delivery_options == DeliveryMethod.PICKUP and chosen_method == OrderDeliveryMethod.DELIVERY:
+            raise serializers.ValidationError("This supplier only accepts Pickup orders.")
+
+        if supplier.delivery_options == DeliveryMethod.DELIVERY and chosen_method == OrderDeliveryMethod.PICKUP:
+            raise serializers.ValidationError("This supplier only accepts Delivery orders.")
+
+
+
         return attrs
 
     def create(self, validated_data):
@@ -68,10 +77,11 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         items_data = validated_data.pop('items')
         consumer = self.context['request'].user.consumer
         supplier = validated_data['supplier']
+        delivery_method = validated_data.get('delivery_method', OrderDeliveryMethod.DELIVERY)
 
         # Atomic Block: If anything fails here, DB rolls back to start
         with transaction.atomic():
-            order = Order.objects.create(consumer=consumer, supplier=supplier, total_amount=0)
+            order = Order.objects.create(consumer=consumer, supplier=supplier, delivery_method=delivery_method ,total_amount=0)
             total_amount = 0
 
             for item in items_data:

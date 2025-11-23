@@ -12,6 +12,9 @@ class OrderStatus(models.TextChoices):
     CANCELED = 'CANCELED', _('Canceled')
     DECLINED = 'DECLINED', _('Declined')
 
+class OrderDeliveryMethod(models.TextChoices):
+    DELIVERY = 'DELIVERY', _('Delivery')
+    PICKUP = 'PICKUP', _('Pickup')
 
 class Order(models.Model):
     consumer = models.ForeignKey(
@@ -28,6 +31,11 @@ class Order(models.Model):
         max_length=20,
         choices=OrderStatus.choices,
         default=OrderStatus.PENDING
+    )
+    delivery_method = models.CharField(
+        max_length=20,
+        choices=OrderDeliveryMethod.choices,
+        default=OrderDeliveryMethod.DELIVERY
     )
     total_amount = models.DecimalField(
         max_digits=12,
