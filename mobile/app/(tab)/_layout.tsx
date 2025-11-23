@@ -28,9 +28,10 @@ export default function RootLayout() {
         name='chat'
         options={{
           title: "Chat",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="chat" color={color} size={size}/>
-          )
+          ),
         }}
       />
     </Tabs>

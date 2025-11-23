@@ -1,20 +1,16 @@
 import { Stack } from 'expo-router';
 import Logout from '@/components/logout';
 
-export default function LinksLayout() {
+export default function ChatLayout() {
   return (
     <Stack>
       <Stack.Screen
         name='index'
         options={{
-          title: 'Supplier Consumer Platform',
+          title: 'Chat',
           headerRight: () => <Logout/>,
         }}
       />
-      <Stack.Screen
-        name='supplier/[id]'
-        options={{ title: 'Supplier Details' }}
-      />
     </Stack>
   );
-}
+};

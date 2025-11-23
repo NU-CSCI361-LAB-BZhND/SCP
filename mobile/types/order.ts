@@ -1,5 +1,5 @@
 export type OrderSearchParams = {
-  id?: number;
+  id?: string;
 };
 
 export enum OrderStatus {
