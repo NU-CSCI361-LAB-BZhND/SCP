@@ -17,6 +17,7 @@ from .serializers import ComplaintSerializer, ComplaintUpdateSerializer, ChatThr
 )
 class ComplaintViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
+    queryset = Complaint.objects.none()
 
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:
@@ -118,6 +119,7 @@ class ComplaintViewSet(viewsets.ModelViewSet):
 class ChatThreadViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ChatThreadSerializer
+    queryset = ChatThread.objects.none()
 
     def get_queryset(self):
         user = self.request.user

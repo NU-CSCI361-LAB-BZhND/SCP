@@ -9,6 +9,7 @@ from .serializers import NotificationSerializer
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = NotificationSerializer
+    queryset = Notification.objects.none()
 
     def get_queryset(self):
         # Users only see their notifications

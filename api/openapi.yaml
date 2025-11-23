@@ -1,0 +1,2157 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+paths:
+  /api/auth/account/delete/:
+    delete:
+      operationId: auth_account_delete_destroy
+      description: Soft deletes the Supplier company and all associated staff.
+      summary: Owner Delete Account
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/auth/me/:
+    get:
+      operationId: auth_me_retrieve
+      description: |-
+        GET /api/auth/me/
+        Returns the authenticated user's profile.
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/auth/register/:
+    post:
+      operationId: auth_register_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistration'
+          description: ''
+  /api/auth/staff/:
+    get:
+      operationId: auth_staff_list
+      description: Allows Owners to create and manage their staff (Managers/Sales
+        Reps).
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StaffCreate'
+          description: ''
+    post:
+      operationId: auth_staff_create
+      description: Allows Owners to create and manage their staff (Managers/Sales
+        Reps).
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StaffCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StaffCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StaffCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StaffCreate'
+          description: ''
+  /api/auth/staff/{id}/:
+    get:
+      operationId: auth_staff_retrieve
+      description: Allows Owners to create and manage their staff (Managers/Sales
+        Reps).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StaffCreate'
+          description: ''
+    put:
+      operationId: auth_staff_update
+      description: Allows Owners to create and manage their staff (Managers/Sales
+        Reps).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StaffCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StaffCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StaffCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StaffCreate'
+          description: ''
+    patch:
+      operationId: auth_staff_partial_update
+      description: Allows Owners to create and manage their staff (Managers/Sales
+        Reps).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStaffCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStaffCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStaffCreate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StaffCreate'
+          description: ''
+    delete:
+      operationId: auth_staff_destroy
+      description: Allows Owners to create and manage their staff (Managers/Sales
+        Reps).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/token/refresh/:
+    post:
+      operationId: auth_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/companies/links/:
+    get:
+      operationId: companies_links_list
+      description: "\n        Returns a list of links filtered by the authenticated
+        user's company.\n        - **Consumers** see requests they have sent.\n        -
+        **Suppliers** see requests sent to them.\n        "
+      summary: List all Company Links
+      tags:
+      - companies
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Link'
+          description: ''
+    post:
+      operationId: companies_links_create
+      description: "\n        Creates a new link request from the authenticated Consumer
+        to a target Supplier.\n        - Status is automatically set to **PENDING**.\n
+        \       - **Fails** if you are acting as a Supplier.\n        - **Fails**
+        if a link already exists.\n        "
+      summary: Request a Link (Consumer only)
+      tags:
+      - companies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LinkCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LinkCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkCreate'
+          description: ''
+  /api/companies/links/{id}/:
+    get:
+      operationId: companies_links_retrieve
+      description: Retrieve detailed information about a specific link relationship.
+      summary: Get Link Details
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this link.
+        required: true
+      tags:
+      - companies
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+          description: ''
+    put:
+      operationId: companies_links_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this link.
+        required: true
+      tags:
+      - companies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Link'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Link'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Link'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+          description: ''
+    patch:
+      operationId: companies_links_partial_update
+      description: "\n        **Supplier Only:** Update the status of a link request.\n
+        \       - Send `{\"status\": \"ACCEPTED\"}` to approve.\n        - Send `{\"status\":
+        \"BLOCKED\"}` to block.\n        "
+      summary: Update Link Status (Approve/Block)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this link.
+        required: true
+      tags:
+      - companies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLinkCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLinkCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLinkCreate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+          description: ''
+    delete:
+      operationId: companies_links_destroy
+      description: Removes the link relationship entirely.
+      summary: Delete/Cancel Link
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this link.
+        required: true
+      tags:
+      - companies
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/companies/suppliers/:
+    get:
+      operationId: companies_suppliers_list
+      tags:
+      - companies
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Supplier'
+          description: ''
+  /api/notifications/:
+    get:
+      operationId: notifications_list
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/notifications/{id}/:
+    get:
+      operationId: notifications_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this notification.
+        required: true
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/notifications/{id}/mark_read/:
+    post:
+      operationId: notifications_mark_read_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this notification.
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/notifications/mark_all_read/:
+    post:
+      operationId: notifications_mark_all_read_create
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/orders/:
+    get:
+      operationId: orders_list
+      summary: List Orders (History)
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderRead'
+          description: ''
+    post:
+      operationId: orders_create
+      description: Atomic transaction. Deducts stock immediately. Fails if stock is
+        low or link is missing.
+      summary: Place a New Order
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderRead'
+          description: ''
+  /api/orders/{id}/:
+    get:
+      operationId: orders_retrieve
+      summary: Get Order Details
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this order.
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderRead'
+          description: ''
+    put:
+      operationId: orders_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this order.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderUpdate'
+          description: ''
+    patch:
+      operationId: orders_partial_update
+      description: Suppliers can Confirm, Ship, or Decline orders. Declining restores
+        stock.
+      summary: Update Order Status
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this order.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderUpdate'
+          description: ''
+    delete:
+      operationId: orders_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this order.
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/products/:
+    get:
+      operationId: products_list
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+          description: ''
+    post:
+      operationId: products_create
+      tags:
+      - products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Product'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Product'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+  /api/products/{id}/:
+    get:
+      operationId: products_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this product.
+        required: true
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+    put:
+      operationId: products_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this product.
+        required: true
+      tags:
+      - products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Product'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Product'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+    patch:
+      operationId: products_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this product.
+        required: true
+      tags:
+      - products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProduct'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProduct'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProduct'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+    delete:
+      operationId: products_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this product.
+        required: true
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/support/chats/:
+    get:
+      operationId: support_chats_list
+      summary: List Chat Threads
+      tags:
+      - support
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatThread'
+          description: ''
+    post:
+      operationId: support_chats_create
+      summary: Start a New Chat Thread
+      tags:
+      - support
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatThread'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatThread'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatThread'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatThread'
+          description: ''
+  /api/support/chats/{id}/:
+    get:
+      operationId: support_chats_retrieve
+      summary: Get Chat Details
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this chat thread.
+        required: true
+      tags:
+      - support
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatThread'
+          description: ''
+    put:
+      operationId: support_chats_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this chat thread.
+        required: true
+      tags:
+      - support
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatThread'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatThread'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatThread'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatThread'
+          description: ''
+    patch:
+      operationId: support_chats_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this chat thread.
+        required: true
+      tags:
+      - support
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedChatThread'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedChatThread'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedChatThread'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatThread'
+          description: ''
+    delete:
+      operationId: support_chats_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this chat thread.
+        required: true
+      tags:
+      - support
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/support/chats/{id}/escalate/:
+    post:
+      operationId: support_chats_escalate_create
+      summary: Escalate Chat to Manager
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this chat thread.
+        required: true
+      tags:
+      - support
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatThread'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatThread'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatThread'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatThread'
+          description: ''
+  /api/support/chats/{thread_pk}/messages/:
+    get:
+      operationId: support_chats_messages_list
+      summary: List Messages in Thread
+      parameters:
+      - in: path
+        name: thread_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - support
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatMessage'
+          description: ''
+    post:
+      operationId: support_chats_messages_create
+      summary: Send Message
+      parameters:
+      - in: path
+        name: thread_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - support
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatMessage'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatMessage'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatMessage'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessage'
+          description: ''
+  /api/support/chats/{thread_pk}/messages/mark_read/:
+    post:
+      operationId: support_chats_messages_mark_read_create
+      description: Marks all messages in this thread sent by the OTHER party as read.
+      summary: Mark messages as Read
+      parameters:
+      - in: path
+        name: thread_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - support
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatMessage'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatMessage'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatMessage'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessage'
+          description: ''
+  /api/support/complaints/:
+    get:
+      operationId: support_complaints_list
+      summary: List Complaints
+      tags:
+      - support
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Complaint'
+          description: ''
+    post:
+      operationId: support_complaints_create
+      summary: File a Complaint
+      tags:
+      - support
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Complaint'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Complaint'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Complaint'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Complaint'
+          description: ''
+  /api/support/complaints/{id}/:
+    get:
+      operationId: support_complaints_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this complaint.
+        required: true
+      tags:
+      - support
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Complaint'
+          description: ''
+    put:
+      operationId: support_complaints_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this complaint.
+        required: true
+      tags:
+      - support
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComplaintUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ComplaintUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ComplaintUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplaintUpdate'
+          description: ''
+    patch:
+      operationId: support_complaints_partial_update
+      summary: Resolve or Dismiss Complaint
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this complaint.
+        required: true
+      tags:
+      - support
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedComplaintUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedComplaintUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedComplaintUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplaintUpdate'
+          description: ''
+    delete:
+      operationId: support_complaints_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this complaint.
+        required: true
+      tags:
+      - support
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/support/complaints/{id}/assign/:
+    post:
+      operationId: support_complaints_assign_create
+      summary: Assign Complaint to Self
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this complaint.
+        required: true
+      tags:
+      - support
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Complaint'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Complaint'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Complaint'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Complaint'
+          description: ''
+  /api/support/complaints/{id}/escalate/:
+    post:
+      operationId: support_complaints_escalate_create
+      description: Move the complaint to the next level.
+      summary: Escalate Complaint
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this complaint.
+        required: true
+      tags:
+      - support
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Complaint'
+          description: ''
+  /api/support/complaints/export_csv/:
+    get:
+      operationId: support_complaints_export_csv_retrieve
+      description: Download a CSV file of all visible complaints.
+      summary: Export Complaints to CSV
+      tags:
+      - support
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Complaint'
+          description: ''
+components:
+  schemas:
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        thread:
+          type: integer
+          readOnly: true
+        sender:
+          type: integer
+          readOnly: true
+        sender_email:
+          type: string
+          readOnly: true
+        sender_role:
+          type: string
+          readOnly: true
+        text:
+          type: string
+        file:
+          type: string
+          format: uri
+          nullable: true
+        is_read:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - is_read
+      - sender
+      - sender_email
+      - sender_role
+      - thread
+    ChatThread:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        consumer:
+          type: integer
+        consumer_name:
+          type: string
+          readOnly: true
+        supplier:
+          type: integer
+        supplier_name:
+          type: string
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        last_message:
+          type: string
+          readOnly: true
+        escalation_level:
+          allOf:
+          - $ref: '#/components/schemas/EscalationLevelEnum'
+          readOnly: true
+      required:
+      - consumer_name
+      - escalation_level
+      - id
+      - last_message
+      - supplier_name
+      - updated_at
+    Complaint:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        order:
+          type: integer
+        created_by_email:
+          type: string
+          readOnly: true
+        subject:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status10aEnum'
+          readOnly: true
+        escalation_level:
+          allOf:
+          - $ref: '#/components/schemas/EscalationLevelEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - created_by_email
+      - description
+      - escalation_level
+      - id
+      - order
+      - status
+      - subject
+    ComplaintUpdate:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/Status10aEnum'
+        escalation_level:
+          $ref: '#/components/schemas/EscalationLevelEnum'
+    Consumer:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        company_name:
+          type: string
+          maxLength: 255
+        address:
+          type: string
+      required:
+      - address
+      - company_name
+      - id
+    DeliveryMethodEnum:
+      enum:
+      - DELIVERY
+      - PICKUP
+      type: string
+      description: |-
+        * `DELIVERY` - Delivery
+        * `PICKUP` - Pickup
+    DeliveryOptionsEnum:
+      enum:
+      - DELIVERY
+      - PICKUP
+      - BOTH
+      type: string
+      description: |-
+        * `DELIVERY` - Delivery Only
+        * `PICKUP` - Pickup Only
+        * `BOTH` - Delivery & Pickup
+    EscalationLevelEnum:
+      enum:
+      - SALES_REP
+      - MANAGER
+      - OWNER
+      type: string
+      description: |-
+        * `SALES_REP` - Sales Representative
+        * `MANAGER` - Manager
+        * `OWNER` - Owner
+    Link:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        supplier:
+          allOf:
+          - $ref: '#/components/schemas/Supplier'
+          readOnly: true
+        consumer:
+          allOf:
+          - $ref: '#/components/schemas/Consumer'
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/Status9e2Enum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - consumer
+      - created_at
+      - id
+      - supplier
+    LinkCreate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        supplier:
+          type: integer
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status9e2Enum'
+          readOnly: true
+      required:
+      - id
+      - status
+      - supplier
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        type:
+          allOf:
+          - $ref: '#/components/schemas/TypeEnum'
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        message:
+          type: string
+          readOnly: true
+        related_id:
+          type: integer
+          readOnly: true
+          nullable: true
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - message
+      - related_id
+      - title
+      - type
+    OrderCreate:
+      type: object
+      properties:
+        supplier:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemCreate'
+        delivery_method:
+          $ref: '#/components/schemas/DeliveryMethodEnum'
+      required:
+      - items
+      - supplier
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        product:
+          type: integer
+        product_name:
+          type: string
+          readOnly: true
+        product_unit:
+          type: string
+          readOnly: true
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        price_at_time_of_order:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        total_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+      required:
+      - id
+      - price_at_time_of_order
+      - product
+      - product_name
+      - product_unit
+      - quantity
+      - total_price
+    OrderItemCreate:
+      type: object
+      properties:
+        product_id:
+          type: integer
+        quantity:
+          type: integer
+      required:
+      - product_id
+      - quantity
+    OrderRead:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/Status0d9Enum'
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        supplier:
+          type: integer
+        supplier_name:
+          type: string
+          readOnly: true
+        consumer:
+          type: integer
+        consumer_name:
+          type: string
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          readOnly: true
+      required:
+      - consumer
+      - consumer_name
+      - created_at
+      - id
+      - items
+      - supplier
+      - supplier_name
+    OrderUpdate:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/Status0d9Enum'
+    PatchedChatThread:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        consumer:
+          type: integer
+        consumer_name:
+          type: string
+          readOnly: true
+        supplier:
+          type: integer
+        supplier_name:
+          type: string
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        last_message:
+          type: string
+          readOnly: true
+        escalation_level:
+          allOf:
+          - $ref: '#/components/schemas/EscalationLevelEnum'
+          readOnly: true
+    PatchedComplaintUpdate:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/Status10aEnum'
+        escalation_level:
+          $ref: '#/components/schemas/EscalationLevelEnum'
+    PatchedLinkCreate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        supplier:
+          type: integer
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status9e2Enum'
+          readOnly: true
+    PatchedOrderUpdate:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/Status0d9Enum'
+    PatchedProduct:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        supplier:
+          type: integer
+          readOnly: true
+        supplier_name:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        unit:
+          type: string
+          maxLength: 50
+        stock_level:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        discount_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+        min_order_qty:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          description: Minimum quantity required to order.
+        is_available:
+          type: boolean
+        image:
+          type: string
+          format: uri
+          nullable: true
+    PatchedStaffCreate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        is_active:
+          type: boolean
+          readOnly: true
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        supplier:
+          type: integer
+          readOnly: true
+        supplier_name:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        unit:
+          type: string
+          maxLength: 50
+        stock_level:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        discount_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+        min_order_qty:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          description: Minimum quantity required to order.
+        is_available:
+          type: boolean
+        image:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - id
+      - name
+      - price
+      - stock_level
+      - supplier
+      - supplier_name
+      - unit
+    RoleEnum:
+      enum:
+      - OWNER
+      - MANAGER
+      - SALES_REP
+      - CONSUMER
+      type: string
+      description: |-
+        * `OWNER` - Owner
+        * `MANAGER` - Manager
+        * `SALES_REP` - Sales Representative
+        * `CONSUMER` - Consumer
+    StaffCreate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        is_active:
+          type: boolean
+          readOnly: true
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+      required:
+      - email
+      - id
+      - is_active
+      - password
+    Status0d9Enum:
+      enum:
+      - PENDING
+      - CONFIRMED
+      - SHIPPED
+      - DELIVERED
+      - CANCELED
+      - DECLINED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `CONFIRMED` - Confirmed
+        * `SHIPPED` - Shipped
+        * `DELIVERED` - Delivered
+        * `CANCELED` - Canceled
+        * `DECLINED` - Declined
+    Status10aEnum:
+      enum:
+      - OPEN
+      - IN_PROGRESS
+      - RESOLVED
+      - DISMISSED
+      type: string
+      description: |-
+        * `OPEN` - Open
+        * `IN_PROGRESS` - In Progress
+        * `RESOLVED` - Resolved
+        * `DISMISSED` - Dismissed
+    Status9e2Enum:
+      enum:
+      - PENDING
+      - ACCEPTED
+      - BLOCKED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `ACCEPTED` - Accepted
+        * `BLOCKED` - Blocked
+    Supplier:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        company_name:
+          type: string
+          maxLength: 255
+        address:
+          type: string
+        delivery_options:
+          $ref: '#/components/schemas/DeliveryOptionsEnum'
+        lead_time:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          description: Average days to fulfill an order
+      required:
+      - address
+      - company_name
+      - id
+    TokenObtainPair:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - email
+      - password
+      - refresh
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+    TypeEnum:
+      enum:
+      - ORDER
+      - COMPLAINT
+      - SYSTEM
+      type: string
+      description: |-
+        * `ORDER` - Order Update
+        * `COMPLAINT` - Complaint Update
+        * `SYSTEM` - System Message
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        company_id:
+          type: integer
+          readOnly: true
+        company_name:
+          type: string
+          readOnly: true
+      required:
+      - company_id
+      - company_name
+      - email
+      - id
+    UserRegistration:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        company_name:
+          type: string
+          writeOnly: true
+        company_address:
+          type: string
+          writeOnly: true
+      required:
+      - company_address
+      - company_name
+      - email
+      - password
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status, permissions, viewsets, exceptions
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
@@ -93,6 +94,12 @@ class DeleteAccountView(APIView):
     """
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(
+        summary="Owner Delete Account",
+        description="Soft deletes the Supplier company and all associated staff.",
+        request=None,  # Explicitly tell Swagger there is no request body
+        responses={204: None}  # Explicitly tell Swagger the response is 204 No Content
+    )
     def delete(self, request):
         user = request.user
 
