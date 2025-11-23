@@ -20,15 +20,6 @@ class DeliveryMethod(models.TextChoices):
 class Supplier(models.Model):
     company_name = models.CharField(max_length=255)
     address = models.TextField()
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.company_name
-
-class Consumer(models.Model):
-    company_name = models.CharField(max_length=255)
-    address = models.TextField()
     delivery_options = models.CharField(
         max_length=20,
         choices=DeliveryMethod.choices,
@@ -38,6 +29,15 @@ class Consumer(models.Model):
         default=1,
         help_text="Average days to fulfill an order"
     )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.company_name
+
+class Consumer(models.Model):
+    company_name = models.CharField(max_length=255)
+    address = models.TextField()
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
