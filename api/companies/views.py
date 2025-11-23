@@ -69,7 +69,7 @@ class LinkViewSet(viewsets.ModelViewSet):
         base_qs = Link.objects.filter(is_active=True)
 
         if user.consumer:
-            return base_qs.filter()
+            return base_qs.filter(consumer=user.consumer)
         elif user.supplier:
             return base_qs.filter(supplier=user.supplier)
         return Link.objects.none()  # Fallback for admins/unassigned
