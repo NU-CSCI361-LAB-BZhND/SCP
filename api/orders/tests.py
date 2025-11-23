@@ -2,9 +2,9 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth import get_user_model
-from companies.models import Supplier, Consumer, Link, LinkStatus
+from companies.models import Supplier, Consumer, Link, LinkStatus, DeliveryMethod
 from products.models import Product
-from orders.models import Order, OrderStatus, OrderItem
+from orders.models import Order, OrderStatus, OrderItem, OrderDeliveryMethod
 from users.models import UserRole
 
 User = get_user_model()
@@ -199,3 +199,75 @@ class OrderTransactionTests(APITestCase):
 
         # Should be 403 Permission Denied
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_order_fails_if_below_moq(self):
+        """Test that ordering less than Min Order Qty fails"""
+        moq_product = Product.objects.create(
+            supplier=self.supplier, name="Bulk Item", price=10, stock_level=100, min_order_qty=5, unit="box"
+        )
+
+        self.client.force_authenticate(user=self.user_consumer)
+        data = {
+            "supplier": self.supplier.id,
+            "items": [{"product_id": moq_product.id, "quantity": 4}]  # Asking for 4
+        }
+        response = self.client.post(self.list_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue("minimum order" in str(response.data))
+
+    def test_order_uses_discount_price(self):
+        """Test that if discount_price is set, it overrides regular price"""
+        deal_product = Product.objects.create(
+            supplier=self.supplier, name="Sale Item", price=100.00, discount_price=80.00,
+            stock_level=10, unit="pcs"
+        )
+
+        self.client.force_authenticate(user=self.user_consumer)
+        data = {
+            "supplier": self.supplier.id,
+            "items": [{"product_id": deal_product.id, "quantity": 2}]
+        }
+        response = self.client.post(self.list_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Total should be 160 (80*2), not 200
+        self.assertEqual(response.data['total_amount'], "160.00")
+
+        # Verify DB record
+        item = OrderItem.objects.get(product=deal_product)
+        self.assertEqual(item.price_at_time_of_order, 80.00)
+
+    def test_delivery_method_validation(self):
+        """Test that Consumer cannot choose Delivery if Supplier is Pickup Only"""
+        self.supplier.delivery_options = DeliveryMethod.PICKUP
+        self.supplier.save()
+
+        self.client.force_authenticate(user=self.user_consumer)
+        data = {
+            "supplier": self.supplier.id,
+            "items": [{"product_id": self.laptop.id, "quantity": 1}],
+            "delivery_method": OrderDeliveryMethod.DELIVERY  # Invalid choice
+        }
+        response = self.client.post(self.list_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue("Pickup orders" in str(response.data))
+
+    def test_default_delivery_method(self):
+        """Test that delivery method defaults to DELIVERY if not specified"""
+        self.supplier.delivery_options = DeliveryMethod.BOTH
+        self.supplier.save()
+
+        self.client.force_authenticate(user=self.user_consumer)
+        data = {
+            "supplier": self.supplier.id,
+            "items": [{"product_id": self.laptop.id, "quantity": 1}]
+            # No delivery_method sent
+        }
+        response = self.client.post(self.list_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        order = Order.objects.get(id=response.data['id'])
+        self.assertEqual(order.delivery_method, OrderDeliveryMethod.DELIVERY)

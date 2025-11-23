@@ -10,4 +10,7 @@ urlpatterns = [
     path('', include(router.urls)),
     # Route for messages: /api/support/chats/{id}/messages/
     path('chats/<int:thread_pk>/messages/', ChatMessageViewSet.as_view({'get': 'list', 'post': 'create'}), name='chat-messages'),
+    path('chats/<int:thread_pk>/messages/mark_read/', ChatMessageViewSet.as_view({
+        'post': 'mark_read'
+    }), name='chat-messages-mark-read'),
 ]

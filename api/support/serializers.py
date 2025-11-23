@@ -15,7 +15,7 @@ class ComplaintSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['status', 'escalation_level', 'created_by_email']
 
-    def validate_order_id(self, value):
+    def validate_order(self, value):
         user = self.context['request'].user
         if user.consumer and value.consumer != user.consumer:
             raise serializers.ValidationError("You can only file complaints for your own orders.")
@@ -49,6 +49,11 @@ class ChatThreadSerializer(serializers.ModelSerializer):
             'updated_at', 'last_message', 'escalation_level'
         ]
         read_only_fields = ['escalation_level']
+        extra_kwargs = {
+            'consumer': {'required': False},
+            'supplier': {'required': False}
+        }
+        validators = []
 
     def get_last_message(self, obj):
         last_msg = obj.messages.last()

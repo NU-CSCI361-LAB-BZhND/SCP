@@ -35,6 +35,7 @@ class LinkTests(APITestCase):
         self.intruder_user.save()
 
         self.list_url = reverse('link-list')
+        self.supplier_list_url = reverse('supplier-list')
 
 
     def test_consumer_can_request_link(self):
@@ -85,9 +86,10 @@ class LinkTests(APITestCase):
         self.client.force_authenticate(user=self.consumer_user)
         url = reverse('link-detail', args=[link.id])
 
+        self.assertEqual(Link.objects.filter(is_active=True).count(), 1)
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Link.objects.count(), 0)
+        self.assertEqual(Link.objects.filter(is_active=True).count(), 0)
 
 
     def test_create_link_ignores_status_input(self):
@@ -138,3 +140,75 @@ class LinkTests(APITestCase):
         self.client.force_authenticate(user=self.supplier_user)
         response = self.client.post(self.list_url, {"supplier": self.supplier_company.id})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_sales_rep_cannot_block_consumer(self):
+        """Test that Sales Representatives cannot block consumers"""
+        sales_rep = User.objects.create_user(
+            email="sales@test.com", password="p", role=UserRole.SALES_REP
+        )
+        sales_rep.supplier = self.supplier_company
+        sales_rep.save()
+
+        link = Link.objects.create(
+            supplier=self.supplier_company, consumer=self.consumer_company, status=LinkStatus.ACCEPTED
+        )
+
+        self.client.force_authenticate(user=sales_rep)
+        url = reverse('link-detail', args=[link.id])
+        response = self.client.patch(url, {"status": LinkStatus.BLOCKED})
+
+        # Expect Forbidden
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        link.refresh_from_db()
+        self.assertEqual(link.status, LinkStatus.ACCEPTED)
+
+    def test_sales_rep_cannot_unlink_consumer(self):
+        """Test that Sales Representatives cannot delete links"""
+        sales_rep = User.objects.create_user(
+            email="sales2@test.com", password="p", role=UserRole.SALES_REP
+        )
+        sales_rep.supplier = self.supplier_company
+        sales_rep.save()
+
+        link = Link.objects.create(
+            supplier=self.supplier_company, consumer=self.consumer_company, status=LinkStatus.ACCEPTED
+        )
+
+        self.client.force_authenticate(user=sales_rep)
+        url = reverse('link-detail', args=[link.id])
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_link_deletion_is_soft_delete(self):
+        """Test that deleting a link archives it (Soft Delete)"""
+        link = Link.objects.create(
+            supplier=self.supplier_company, consumer=self.consumer_company, status=LinkStatus.ACCEPTED
+        )
+
+        self.client.force_authenticate(user=self.supplier_user)  # Owner
+        url = reverse('link-detail', args=[link.id])
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Verify Soft Delete
+        link.refresh_from_db()
+        self.assertFalse(link.is_active)  # Flag should be False
+        self.assertIsNotNone(link.pk)  # Record should still exist
+
+    def test_supplier_list_hides_archived_companies(self):
+        """Test that the Supplier List endpoint hides inactive suppliers"""
+        self.supplier_company.is_active = False
+        self.supplier_company.save()
+
+        Supplier.objects.create(company_name="Active One", address="Here")
+
+        self.client.force_authenticate(user=self.consumer_user)
+        response = self.client.get(self.supplier_list_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        companies = [s['company_name'] for s in response.data]
+        self.assertIn("Active One", companies)
+        self.assertNotIn("Beka Corp", companies)

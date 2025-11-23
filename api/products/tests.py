@@ -130,3 +130,81 @@ class ProductCatalogTests(APITestCase):
 
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['name'], "Potato")
+
+    def test_sales_rep_cannot_manage_catalog(self):
+        """Test that Sales Reps cannot Create/Update/Delete products"""
+        sales_rep = User.objects.create_user(
+            "sales@test.com", "pass", role=UserRole.SALES_REP
+        )
+        sales_rep.supplier = self.supplier_a
+        sales_rep.save()
+
+        self.client.force_authenticate(user=sales_rep)
+
+        response = self.client.post(self.list_url, {"name": "Bad", "price": 1, "stock_level": 1, "unit": "qty"})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        url = reverse('product-detail', args=[self.potato.id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_consumer_hides_low_stock_moq(self):
+        """
+        Test that if Stock < Min Order Qty, Consumer cannot see the product.
+        Supplier SHOULD still see it.
+        """
+
+        low_stock_item = Product.objects.create(
+            supplier=self.supplier_a, name="Low Stock", price=10,
+            stock_level=5, min_order_qty=10, unit="pcs"
+        )
+        Link.objects.create(supplier=self.supplier_a, consumer=self.consumer, status=LinkStatus.ACCEPTED)
+
+        self.client.force_authenticate(user=self.user_consumer)
+        response = self.client.get(self.list_url)
+
+        # Should only see 'Potato' (Stock 100, Min 1). Should NOT see 'Low Stock'
+        names = [p['name'] for p in response.data]
+        self.assertNotIn("Low Stock", names)
+        self.assertIn("Potato", names)
+
+        # 3. Supplier View -> Should be visible
+        self.client.force_authenticate(user=self.user_supplier_a)
+        response = self.client.get(self.list_url)
+        names = [p['name'] for p in response.data]
+        self.assertIn("Low Stock", names)
+
+    def test_product_soft_delete(self):
+        """Test that deleting a product archives it (Soft Delete)"""
+        self.client.force_authenticate(user=self.user_supplier_a)
+        url = reverse('product-detail', args=[self.potato.id])
+
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        self.potato.refresh_from_db()
+        self.assertTrue(self.potato.is_archived)
+        self.assertFalse(self.potato.is_available)
+
+        # Verify List (Should disappear)
+        response = self.client.get(self.list_url)
+        self.assertEqual(len(response.data), 1)  # 2 original - 1 deleted
+        ids = [p['id'] for p in response.data]
+        self.assertNotIn(self.potato.id, ids)
+
+    def test_supplier_soft_delete_hides_products(self):
+        """Test that if Supplier is archived, their products disappear"""
+        Link.objects.create(supplier=self.supplier_a, consumer=self.consumer, status=LinkStatus.ACCEPTED)
+
+        # Verify visible initially
+        self.client.force_authenticate(user=self.user_consumer)
+        response = self.client.get(self.list_url)
+        self.assertTrue(len(response.data) > 0)
+
+        # Soft Delete the Supplier
+        self.supplier_a.is_active = False
+        self.supplier_a.save()
+
+        # Verify products hidden
+        response = self.client.get(self.list_url)
+        self.assertEqual(len(response.data), 0)

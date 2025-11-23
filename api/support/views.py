@@ -123,9 +123,13 @@ class ChatThreadViewSet(viewsets.ModelViewSet):
         user = self.request.user
         base_qs = ChatThread.objects.filter(is_active=True)
         if user.consumer:
-            return base_qs.filter(consumer=user.consumer)
+            return base_qs.filter(consumer=user.consumer, supplier__links__consumer=user.consumer,
+                supplier__links__status=LinkStatus.ACCEPTED,
+                supplier__links__is_active=True)
         elif user.supplier:
-            return base_qs.filter(supplier=user.supplier)
+            return base_qs.filter(supplier=user.supplier, consumer__links__supplier=user.supplier,
+                consumer__links__status=LinkStatus.ACCEPTED,
+                consumer__links__is_active=True)
         return ChatThread.objects.none()
 
     def perform_create(self, serializer):
@@ -154,6 +158,10 @@ class ChatThreadViewSet(viewsets.ModelViewSet):
             raise exceptions.PermissionDenied("You must have an ACCEPTED link to chat.")
 
         serializer.save(consumer=consumer, supplier=supplier)
+
+    def perform_destroy(self, instance):
+        instance.is_active = False
+        instance.save()
 
     @extend_schema(summary="Escalate Chat to Manager")
     @action(detail=True, methods=['post'])
@@ -202,6 +210,7 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         thread_id = self.kwargs.get('thread_pk')
+        user = self.request.user
         try:
             thread = ChatThread.objects.get(id=thread_id)
         except ChatThread.DoesNotExist:
@@ -211,6 +220,16 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if (user.consumer and thread.consumer != user.consumer) or (user.supplier and thread.supplier != user.supplier):
             raise exceptions.PermissionDenied("You are not part of this chat.")
+
+        has_valid_link = Link.objects.filter(
+            consumer=thread.consumer,
+            supplier=thread.supplier,
+            status=LinkStatus.ACCEPTED,
+            is_active=True
+        ).exists()
+
+        if not has_valid_link:
+            raise exceptions.PermissionDenied("Cannot send message: Link is blocked or removed.")
 
         serializer.save(sender=user, thread=thread)
 
