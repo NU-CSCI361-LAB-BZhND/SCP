@@ -4,14 +4,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from .serializers import UserRegistrationSerializer, UserSerializer
 from .models import User, UserRole
-from .permissions import IsOwnerUser
+from .permissions import IsOwnerUser, IsOwnerOrManager
 
 # Create your views here.
-
-class IsOwnerOrManager(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and
-                    request.user.role in [UserRole.OWNER, UserRole.MANAGER])
 
 # Endpoint
 class RegisterView(generics.CreateAPIView):
@@ -46,11 +41,10 @@ class StaffViewSet(viewsets.ModelViewSet):
     """
     Allows Owners to create and manage their staff (Managers/Sales Reps).
     """
-    permission_classes = [IsOwnerUser]
+    permission_classes = [IsOwnerOrManager]
     queryset = User.objects.none()
 
     def get_queryset(self):
-        # Owners see only their own staff
         return User.objects.filter(supplier=self.request.user.supplier).exclude(id=self.request.user.id)
 
     def get_serializer_class(self):

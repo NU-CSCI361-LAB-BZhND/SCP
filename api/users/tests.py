@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth import get_user_model
 from companies.models import Supplier, Consumer
+from users.models import UserRole
 
 User = get_user_model()
 
@@ -12,6 +13,8 @@ class UserAuthTests(APITestCase):
         # Endpoints
         self.register_url = reverse('register')
         self.login_url = reverse('token_obtain_pair')
+        self.staff_list_url = reverse('staff-list')
+        self.delete_account_url = reverse('delete-account')
         self.me_url = reverse('me')  # /api/auth/me/
 
         self.supplier_data = {
@@ -136,3 +139,160 @@ class UserAuthTests(APITestCase):
         incomplete_data = {"email": "fail@test.com", "password": "123"}
         response = self.client.post(self.register_url, incomplete_data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_owner_can_create_manager(self):
+        """Test Owner creating a Manager via Staff API"""
+
+        self.client.post(self.register_url, self.supplier_data)
+        owner_user = User.objects.get(email=self.supplier_data['email'])
+        self.client.force_authenticate(user=owner_user)
+
+        data = {
+            "email": "new_manager@mega.com",
+            "password": "pass",
+            "first_name": "Big",
+            "last_name": "Boss",
+            "role": UserRole.MANAGER
+        }
+        data2 = {
+            "email": "new_sales@mega.com",
+            "password": "pass",
+            "first_name": "Big",
+            "last_name": "Boss",
+            "role": UserRole.SALES_REP
+        }
+        response = self.client.post(self.staff_list_url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response2 = self.client.post(self.staff_list_url, data2)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        new_user = User.objects.get(email="new_manager@mega.com")
+        self.assertEqual(new_user.supplier, owner_user.supplier)
+        self.assertEqual(new_user.role, UserRole.MANAGER)
+        new_sales = User.objects.get(email="new_sales@mega.com")
+        self.assertEqual(new_sales.supplier, owner_user.supplier)
+        self.assertEqual(new_sales.role, UserRole.SALES_REP)
+
+    def test_manager_cannot_create_manager(self):
+        """Test Hierarchy: Manager cannot create another Manager"""
+
+        self.client.post(self.register_url, self.supplier_data)
+        owner = User.objects.get(email=self.supplier_data['email'])
+
+        manager = User.objects.create_user(
+            email="manager@test.com", password="password", role=UserRole.MANAGER
+        )
+        manager.supplier = owner.supplier
+        manager.save()
+
+        self.client.force_authenticate(user=manager)
+
+        data = {
+            "email": "rival_manager@mega.com",
+            "password": "pass",
+            "role": UserRole.MANAGER
+        }
+        response = self.client.post(self.staff_list_url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_manager_can_create_sales_rep(self):
+        """Test Hierarchy: Manager can create Sales Rep"""
+        self.client.post(self.register_url, self.supplier_data)
+        owner = User.objects.get(email=self.supplier_data['email'])
+
+        manager = User.objects.create_user(
+            email="manager@test.com", password="password", role=UserRole.MANAGER
+        )
+        manager.supplier = owner.supplier
+        manager.save()
+
+        self.client.force_authenticate(user=manager)
+
+        data = {
+            "email": "sales_rep@mega.com",
+            "password": "pass",
+            "role": UserRole.SALES_REP
+        }
+        response = self.client.post(self.staff_list_url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        new_user = User.objects.get(email="sales_rep@mega.com")
+        self.assertEqual(new_user.supplier, owner.supplier)
+        self.assertEqual(new_user.supplier, manager.supplier)
+        self.assertEqual(new_user.role, UserRole.SALES_REP)
+
+    def test_sales_rep_cannot_create_staff(self):
+        """Test that Sales Reps are denied access to Staff API"""
+
+        self.client.post(self.register_url, self.supplier_data)
+        owner = User.objects.get(email=self.supplier_data['email'])
+
+        sales_rep = User.objects.create_user(
+            email="sales@test.com", password="password", role=UserRole.SALES_REP
+        )
+        sales_rep.supplier = owner.supplier
+        sales_rep.save()
+
+        # 3. Login as Sales Rep
+        self.client.force_authenticate(user=sales_rep)
+
+        response = self.client.get(self.staff_list_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_owner_can_soft_delete_staff(self):
+        """Test that deleting staff marks them inactive (Soft Delete)"""
+
+        self.client.post(self.register_url, self.supplier_data)
+        owner = User.objects.get(email=self.supplier_data['email'])
+        self.client.force_authenticate(user=owner)
+
+        staff_data = {
+            "email": "tobe_deleted@test.com",
+            "password": "pass",
+            "role": UserRole.SALES_REP
+        }
+        create_resp = self.client.post(self.staff_list_url, staff_data)
+        staff_id = create_resp.data['id']
+
+        url = reverse('staff-detail', args=[staff_id])
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # 4. Verify Soft Delete
+        staff_user = User.objects.get(pk=staff_id)
+        self.assertFalse(staff_user.is_active)
+        self.assertIsNotNone(staff_user.pk)  # Should still exist in DB
+
+    def test_owner_delete_account_cascades_soft_delete(self):
+        """
+        Test UC6: Owner deletes account.
+        Expect: Supplier, Owner, and ALL Staff to be deactivated (is_active=False).
+        """
+
+        self.client.post(self.register_url, self.supplier_data)
+        owner = User.objects.get(email=self.supplier_data['email'])
+        company = owner.supplier
+        self.client.force_authenticate(user=owner)
+
+        User.objects.create_user(
+            email="staff1@test.com", password="p", role=UserRole.MANAGER, supplier=company
+        )
+
+        User.objects.create_user(
+            email="staff2@test.com", password="p", role=UserRole.SALES_REP, supplier=company
+        )
+
+        response = self.client.delete(self.delete_account_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        company.refresh_from_db()
+        self.assertFalse(company.is_active)
+
+        owner.refresh_from_db()
+        self.assertFalse(owner.is_active)
+
+        staff = User.objects.get(email="staff1@test.com")
+        self.assertFalse(staff.is_active)
+
+        staff2 = User .objects.get(email="staff2@test.com")
+        self.assertFalse(staff2.is_active)
