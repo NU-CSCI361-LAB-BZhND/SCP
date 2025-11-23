@@ -1,4 +1,4 @@
-To run, first change the value of `SERVER_URL` to match server's address.
+To run, first change the value of `SERVER_URL` in `util/fetch.ts` to match server's address.
 Then, from this directory, run:
 
 ```sh
