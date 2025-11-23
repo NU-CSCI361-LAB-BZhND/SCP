@@ -4,12 +4,12 @@ from orders.models import Order
 
 class ComplaintSerializer(serializers.ModelSerializer):
     created_by_email = serializers.CharField(source='created_by.email', read_only=True)
-    order_id = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all())
+    order = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all())
 
     class Meta:
         model = Complaint
         fields = [
-            'id', 'order_id', 'created_by_email',
+            'id', 'order', 'created_by_email',
             'subject', 'description', 'status',
             'escalation_level', 'created_at'
         ]
