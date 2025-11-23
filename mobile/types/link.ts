@@ -1,3 +1,4 @@
+import { ConsumerCompany } from '@/types/consumer';
 import { SupplierCompany } from '@/types/supplier';
 
 export enum LinkStatus {
@@ -9,6 +10,7 @@ export enum LinkStatus {
 export type LinkInfo = {
   id: number;
   supplier: SupplierCompany;
+  consumer: ConsumerCompany;
   status: LinkStatus;
   created_at: string;
 };

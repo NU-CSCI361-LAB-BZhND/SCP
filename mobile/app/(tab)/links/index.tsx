@@ -4,14 +4,47 @@ import { FlatList, ScrollView, Text, View } from 'react-native';
 import OpacityPressable from '@/components/opacitypressable';
 import { GlobalContext } from '@/util/context';
 import { callGet } from '@/util/fetch';
-import type { LinkInfo } from '@/types/link';
+import { LinkStatus } from '@/types/link';
+import { LinkInfo } from '@/types/link';
 import type { LinkedSupplier, SupplierCompany } from '@/types/supplier';
 
-function SupplierLinks() {
+function ConsumerEntry({ info }: { info: LinkInfo }) {
+  const router = useRouter();
+  const { id, consumer, status } = info;
   return (
-    <View>
-      <Text>THIS IS SUPPLIER</Text>
-    </View>
+    <OpacityPressable
+      onPress={() => router.push(`/links/link/${id}`)}
+    >
+      <Text selectable={false} style={{ fontSize: 20 }}>
+        {consumer.company_name}
+      </Text>
+      <Text selectable={false}>Link status: {status}</Text>
+      <Text selectable={false}>Address: {consumer.address}</Text>
+    </OpacityPressable>
+  );
+}
+
+function SupplierLinks() {
+  const context = useContext(GlobalContext);
+  const [links, setLinks] = useState<LinkInfo[]>([]);
+  const router = useRouter();
+  useEffect(() => {
+    callGet<LinkInfo[]>('/api/companies/links/', context).then(result => {
+      result.sort((a, b) => ( // Push BLOCKED ones to the end
+        +(a.status == LinkStatus.Blocked) - +(b.status == LinkStatus.Blocked)
+      ));
+      setLinks(result);
+    }).catch(err => {
+      router.replace('/login');
+    });
+  }, [context.accessToken, context.update]);
+  return (
+    <FlatList
+      style={{ padding: 5 }}
+      data={links}
+      renderItem={({item}) => <ConsumerEntry info={item}/>}
+      keyExtractor={item => String(item.id)}
+    />
   );
 }
 
@@ -49,13 +82,13 @@ function ConsumerLinks() {
       .then(result => {
         setSuppliers(result);
       }).catch(err => {
-        router.navigate('/login');
+        router.replace('/login');
       });
     callGet<LinkInfo[]>('/api/companies/links/', context)
       .then(result => {
         setLinks(result);
       }).catch(err => {
-        router.navigate('/login');
+        router.replace('/login');
       });
   }, [context.accessToken, context.update]);
   return (

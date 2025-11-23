@@ -67,6 +67,14 @@ export async function callGet<T>(
   return await callMethod('GET', path, data, state);
 }
 
+export async function callPatch<T>(
+  path: string,
+  state: GlobalState,
+  data: object | null = null,
+): Promise<T> {
+  return await callMethod('PATCH', path, data, state);
+}
+
 export async function callDelete(
   path: string,
   state: GlobalState,

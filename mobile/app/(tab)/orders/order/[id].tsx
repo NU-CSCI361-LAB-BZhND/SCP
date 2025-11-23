@@ -1,8 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useContext, useEffect, useState } from 'react';
-import { FlatList, Text, View } from 'react-native';
+import { Button, FlatList, Text, View } from 'react-native';
 import { GlobalContext } from '@/util/context';
-import { callGet } from '@/util/fetch';
+import { callGet, callDelete } from '@/util/fetch';
 import type { OrderItem, OrderRead, OrderSearchParams } from '@/types/order';
 
 function Product({ info }: { info: OrderItem }) {
@@ -45,9 +45,22 @@ export default function OrderDetails() {
       <Text>Status: {order.status}</Text>
       <Text>Total amount: {order.total_amount}</Text>
       <FlatList
+        style={{ marginBottom: 5 }}
         data={order.items}
         renderItem={({item}) => <Product info={item}/>}
         keyExtractor={item => String(item.id)}
+      />
+      <Button
+        title='Remove order'
+        onPress={() => {
+          callDelete(`/api/orders/${id}/`, context).then(result => {
+            router.back();
+            context.forceUpdate();
+          }).catch(err => {
+            router.back();
+            context.forceUpdate();
+          });
+        }}
       />
     </View>
   );

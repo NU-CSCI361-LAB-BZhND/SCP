@@ -1,9 +1,9 @@
 import type { LinkInfo } from '@/types/link';
 
-export enum SubscriptionStatus {
-  Trial   = 'TRIAL',
-  Active  = 'ACTIVE',
-  Expired = 'EXPIRED',
+export enum DeliveryOptions {
+  Delivery = 'DELIVERY',
+  Pickup   = 'PICKUP',
+  Both     = 'BOTH',
 };
 
 export type SupplierSearchParams = {
@@ -14,7 +14,8 @@ export type SupplierCompany = {
   id: number;
   company_name: string;
   address: string;
-  subscription_status: SubscriptionStatus;
+  delivery_options: DeliveryOptions;
+  lead_time: number;
 };
 
 export type LinkedSupplier = {

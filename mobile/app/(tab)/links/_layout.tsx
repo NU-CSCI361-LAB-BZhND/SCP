@@ -12,6 +12,10 @@ export default function LinksLayout() {
         }}
       />
       <Stack.Screen name='supplier/[id]' options={{ headerShown: false }}/>
+      <Stack.Screen
+        name='link/[id]'
+        options={{ title: 'Consumer Details' }}
+      />
     </Stack>
   );
 }

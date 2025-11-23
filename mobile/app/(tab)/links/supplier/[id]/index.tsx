@@ -77,6 +77,11 @@ export default function SupplierDetails() {
                 context.linkedSupplierCache.current[index].link = {
                   id: result.id,
                   supplier: context.linkedSupplierCache.current[index].supplier,
+                  consumer: {
+                    id: 0,
+                    company_name: '-',
+                    address: '-',
+                  },
                   status: LinkStatus.Pending,
                   created_at: '-',
                 };

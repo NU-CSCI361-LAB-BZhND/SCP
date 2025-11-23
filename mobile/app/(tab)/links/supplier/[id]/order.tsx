@@ -1,6 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useContext, useEffect, useState } from 'react';
-import { Button, FlatList, Text, View } from 'react-native';
+import {
+  Button, FlatList, KeyboardAvoidingView, Platform, Text, View,
+} from 'react-native';
 import BorderedInput from '@/components/borderedinput';
 import { GlobalContext } from '@/util/context';
 import { callGet, callPost } from '@/util/fetch';
@@ -74,7 +76,10 @@ export default function NewOrder() {
   }, [context.accessToken, context.update]);
   const [error, setError] = useState('');
   return (
-    <View style={{ padding: 10 }}>
+    <KeyboardAvoidingView
+      style={{ padding: 10 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       {error && <Text style={{ color: 'red' }}>Error: {error}</Text>}
       <Button
         title='Order'
@@ -102,6 +107,6 @@ export default function NewOrder() {
         renderItem={({item}) => <Product info={item}/>}
         keyExtractor={item => String(item.product.id)}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 };
