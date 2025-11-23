@@ -193,6 +193,11 @@ export default function OrderDetails() {
           />
         </> : <Text style={{ color: 'red' }}>ERROR: UKNOWN ORDER STATUS</Text>
       }
+      <View style={{ marginTop: 10 }}/>
+      <Button
+        title='View complaints'
+        onPress={() => router.navigate(`/orders/supplier/${id}/complaints`)}
+      />
     </View>
   );
 }

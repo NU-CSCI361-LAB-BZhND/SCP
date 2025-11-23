@@ -1,11 +1,19 @@
 import { TextInput } from 'react-native';
 
 export default function BorderedInput(
-  { onChangeText, value, placeholder, inputMode, style = {} }: {
+  {
+    onChangeText,
+    value,
+    placeholder,
+    inputMode,
+    multiline = false,
+    style = {},
+  }: {
     onChangeText: (text: string) => void;
     value: string;
     placeholder: string;
     inputMode: 'numeric' | 'email' | 'text' | 'password';
+    multiline?: boolean;
     style?: object;
   },
 ) {
@@ -28,6 +36,7 @@ export default function BorderedInput(
       placeholderTextColor='gray'
       inputMode={inputMode}
       secureTextEntry={secureTextEntry}
+      multiline={multiline}
     />
   );
 };

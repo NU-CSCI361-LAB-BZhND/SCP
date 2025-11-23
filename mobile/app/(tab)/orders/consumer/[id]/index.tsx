@@ -51,6 +51,11 @@ export default function OrderDetails() {
         keyExtractor={item => String(item.id)}
       />
       <Button
+        title='File complaint'
+        onPress={() => router.navigate(`/orders/consumer/${id}/complaint`)}
+      />
+      <View style={{ marginTop: 10 }}/>
+      <Button
         title='Remove order'
         onPress={() => {
           callDelete(`/api/orders/${id}/`, context).then(result => {
@@ -61,6 +66,11 @@ export default function OrderDetails() {
             context.forceUpdate();
           });
         }}
+      />
+      <View style={{ marginTop: 10 }}/>
+      <Button
+        title='View complaints'
+        onPress={() => router.navigate(`/orders/consumer/${id}/complaints`)}
       />
     </View>
   );
