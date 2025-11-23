@@ -11,11 +11,11 @@ export default function OrdersPage() {
   
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [processingId, setProcessingId] = useState(null); // To show loading on specific button
+  const [processingId, setProcessingId] = useState(null);
 
   useEffect(() => {
     if (!hasPageAccess('orders')) {
-      // router.replace('/unauthorized'); // Optional: redirect logic
+      // router.replace('/unauthorized'); 
     }
     fetchOrders();
   }, [hasPageAccess]);
@@ -36,12 +36,13 @@ export default function OrdersPage() {
     try {
       await dataService.updateOrderStatus(id, newStatus);
       
-      // Update local state to reflect change immediately
+      // Update local state
       setOrders(prevOrders => 
         prevOrders.map(o => (o.id === id ? { ...o, status: newStatus } : o))
       );
     } catch (err) {
-      alert("Failed to update order status");
+      // Alert the specific error message from the backend
+      alert(`Error: ${err.message}`);
     } finally {
       setProcessingId(null);
     }
@@ -49,14 +50,11 @@ export default function OrdersPage() {
 
   // Helper to safely extract product names from nested lists
   const renderProductNames = (order) => {
-    // Check common field names for nested items in Django Serializers
     const items = order.items || order.order_items || [];
     
     if (!items || items.length === 0) return <span className="text-gray-400 italic">No items</span>;
 
-    // Map through items to find the product name
     const names = items.map(item => {
-        // Handle case where product is an object vs just an ID/string
         if (typeof item.product === 'object' && item.product.name) return item.product.name;
         if (item.product_name) return item.product_name; 
         return item.product || 'Unknown Item';

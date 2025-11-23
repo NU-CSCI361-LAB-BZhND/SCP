@@ -3,18 +3,32 @@ const BASE_URL = 'http://localhost:8000';
 // Helper to get headers with Auth token
 const getHeaders = () => {
   const token = localStorage.getItem('accessToken');
-  return {
+  const headers = {
     'Content-Type': 'application/json',
-    'Authorization': token ? `Bearer ${token}` : '',
+    'Accept': 'application/json',
   };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
 };
 
 // Helper to handle responses
 const handleResponse = async (response) => {
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Request failed' }));
-    throw new Error(error.detail || 'Something went wrong');
+    let errorMessage = 'Request failed';
+    try {
+      const errorData = await response.json();
+      // Try to find the specific error message
+      errorMessage = errorData.detail || errorData.message || JSON.stringify(errorData);
+    } catch (e) {
+      errorMessage = response.statusText;
+    }
+    throw new Error(errorMessage);
   }
+  
   // Some endpoints (like DELETE) might return 204 No Content
   if (response.status === 204) return null;
   return response.json();
@@ -62,14 +76,11 @@ export const dataService = {
   },
 
   // --- ACCOUNTS (STAFF) ---
-  // Updated to use /api/auth/staff/
-  
   async getAccounts() {
     const response = await fetch(`${BASE_URL}/api/auth/staff/`, { method: 'GET', headers: getHeaders() });
     return handleResponse(response);
   },
 
-  // UC5: Create Staff Account
   async createAccount(userData) {
     const response = await fetch(`${BASE_URL}/api/auth/staff/`, { 
       method: 'POST', 
@@ -79,7 +90,6 @@ export const dataService = {
     return handleResponse(response);
   },
 
-  // UC6: Delete Staff Account
   async deleteAccount(id) {
     const response = await fetch(`${BASE_URL}/api/auth/staff/${id}/`, { method: 'DELETE', headers: getHeaders() });
     return handleResponse(response);
