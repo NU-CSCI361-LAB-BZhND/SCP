@@ -34,6 +34,16 @@ export default function RootLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name='notifications'
+        options={{
+          title: "Notifications",
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="notifications" color={color} size={size}/>
+          ),
+        }}
+      />
     </Tabs>
   );
 };

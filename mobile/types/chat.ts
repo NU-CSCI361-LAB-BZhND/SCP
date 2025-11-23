@@ -2,17 +2,6 @@ export type ChatSearchParams = {
   id?: string;
 };
 
-export type Chat = {
-  id: number;
-  consumer: number;
-  consumer_name: string;
-  supplier: number;
-  supplier_name: string;
-  updated_at: string;
-  last_message: string;
-  escalation_level: string;
-};
-
 export type Message = {
   id: number;
   thread: number;
@@ -23,4 +12,15 @@ export type Message = {
   file: string | null;
   is_read: boolean;
   created_at: string;
+};
+
+export type Chat = {
+  id: number;
+  consumer: number;
+  consumer_name: string;
+  supplier: number;
+  supplier_name: string;
+  updated_at: string;
+  last_message: Message;
+  escalation_level: string;
 };
