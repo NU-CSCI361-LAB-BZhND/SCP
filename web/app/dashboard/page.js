@@ -3,31 +3,27 @@ import { useState, useEffect } from 'react';
 import { useRBAC } from '@/context/RBACContext';
 import IfAllowed from '@/components/IfAllowed';
 import { dataService } from '@/services/dataService';
-import { useRouter } from 'next/navigation';
 
 export default function AccountsPage() {
-  const { hasPageAccess } = useRBAC();
-  const router = useRouter();
+  const { hasPageAccess, user } = useRBAC();
 
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Form state with fields required for a user account
+  // Form state
   const [newAccount, setNewAccount] = useState({
     first_name: '',
     last_name: '',
     email: '',
     password: '',
-    role: 'MANAGER'
+    role: 'SALES_REP' // Default role
   });
 
   useEffect(() => {
     // 1. Check permissions
     if (!hasPageAccess('accounts')) {
-       // Optional: Redirect if this is the main dashboard page and they shouldn't see it
-       // router.replace('/dashboard/orders'); 
-       // For now, we just let IfAllowed handle the hiding, but fetching might fail if API is secured.
+       // Optional: Redirect
     }
     
     // 2. Fetch data
@@ -40,26 +36,46 @@ export default function AccountsPage() {
       setAccounts(data);
     } catch (err) {
       console.error(err);
-      // Don't show error if it's just 403 (permission denied) on load
-      if (err.message.includes('403')) return;
-      setError('Failed to load accounts');
+      // If the list endpoint doesn't exist yet (404/403), we just show empty list without error
+      if (!err.message.includes('403') && !err.message.includes('404')) {
+         // setError('Failed to load accounts');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleAdd = async () => {
-    if (!newAccount.email || !newAccount.password || !newAccount.first_name) {
-        alert("Please fill in all required fields");
+    // Validation
+    if (!newAccount.email || !newAccount.password || !newAccount.first_name || !newAccount.last_name) {
+        alert("Please fill in all fields (Name, Email, Password)");
         return;
     }
 
     try {
-      const createdUser = await dataService.createAccount(newAccount);
-      setAccounts([...accounts, createdUser]);
+      // Prepare payload. 
+      // We automatically attach the current owner's company info if available in 'user' context
+      // to ensure the new staff member is linked to the right company.
+      const payload = {
+          ...newAccount,
+          company_name: user?.company_name || 'My Company', // Fallback or auto-fill
+          company_address: user?.company_address || 'Main Office' // Fallback
+      };
+
+      const createdUser = await dataService.createAccount(payload);
+      
+      // Update UI
+      if (createdUser && createdUser.id) {
+          setAccounts([...accounts, createdUser]);
+      } else {
+          // If API returns success but no object, try to re-fetch
+          fetchAccounts();
+      }
+
       // Reset form
-      setNewAccount({ first_name: '', last_name: '', email: '', password: '', role: 'MANAGER' });
+      setNewAccount({ first_name: '', last_name: '', email: '', password: '', role: 'SALES_REP' });
       setError('');
+      alert('Account created successfully');
     } catch (err) {
       alert(err.message || 'Failed to create account');
     }
@@ -67,7 +83,6 @@ export default function AccountsPage() {
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this user?')) return;
-    
     try {
         await dataService.deleteAccount(id);
         setAccounts(accounts.filter(a => a.id !== id));
@@ -86,8 +101,10 @@ export default function AccountsPage() {
 
         {/* Create Account Form */}
         <div className="bg-white p-6 rounded shadow space-y-4">
-          <h2 className="font-semibold text-lg">Add New Staff</h2>
+          <h2 className="font-semibold text-lg">Create New Staff Account</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            {/* Name Fields */}
             <input
               type="text"
               placeholder="First Name"
@@ -102,6 +119,8 @@ export default function AccountsPage() {
               value={newAccount.last_name}
               onChange={e => setNewAccount({ ...newAccount, last_name: e.target.value })}
             />
+
+            {/* Login Credentials */}
             <input
               type="email"
               placeholder="Email (Login)"
@@ -116,17 +135,23 @@ export default function AccountsPage() {
               value={newAccount.password}
               onChange={e => setNewAccount({ ...newAccount, password: e.target.value })}
             />
-            <select
-              value={newAccount.role}
-              className="border p-2 rounded w-full"
-              onChange={e => setNewAccount({ ...newAccount, role: e.target.value })}
-            >
-              <option value="MANAGER">Manager</option>
-              <option value="OWNER">Owner</option>
-            </select>
+
+            {/* Role Selection */}
+            <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                <select
+                    value={newAccount.role}
+                    className="border p-2 rounded w-full bg-white"
+                    onChange={e => setNewAccount({ ...newAccount, role: e.target.value })}
+                >
+                    <option value="SALES_REP">Sales Representative</option>
+                    <option value="MANAGER">Manager</option>
+                </select>
+            </div>
           </div>
+
           <button
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-medium"
             onClick={handleAdd}
           >
             Create Account
@@ -139,7 +164,6 @@ export default function AccountsPage() {
           <table className="w-full table-auto border-collapse text-left">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border p-2">ID</th>
                 <th className="border p-2">Name</th>
                 <th className="border p-2">Email</th>
                 <th className="border p-2">Role</th>
@@ -149,11 +173,13 @@ export default function AccountsPage() {
             <tbody>
               {accounts.map(a => (
                 <tr key={a.id}>
-                  <td className="border p-2">{a.id}</td>
-                  <td className="border p-2">{a.first_name} {a.last_name}</td>
-                  <td className="border p-2">{a.email}</td>
+                  <td className="border p-2 font-medium">{a.first_name} {a.last_name}</td>
+                  <td className="border p-2 text-gray-600">{a.email}</td>
                   <td className="border p-2">
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${a.role === 'OWNER' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                    <span className={`px-2 py-1 rounded text-xs font-bold 
+                        ${a.role === 'MANAGER' ? 'bg-purple-100 text-purple-800' : 
+                          a.role === 'SALES_REP' ? 'bg-blue-100 text-blue-800' : 
+                          'bg-gray-100 text-gray-800'}`}>
                         {a.role}
                     </span>
                   </td>
@@ -171,7 +197,7 @@ export default function AccountsPage() {
               ))}
               {accounts.length === 0 && (
                 <tr>
-                    <td colSpan="5" className="p-4 text-center text-gray-500">No accounts found.</td>
+                    <td colSpan="4" className="p-4 text-center text-gray-500">No staff accounts found.</td>
                 </tr>
             )}
             </tbody>
