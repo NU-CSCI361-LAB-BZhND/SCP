@@ -97,17 +97,30 @@ export const dataService = {
   },
 
   // --- UC4: COMPLAINTS ---
+  // GET /api/support/complaints/
   async getComplaints() {
     const response = await fetch(`${BASE_URL}/api/support/complaints/`, { method: 'GET', headers: getHeaders() });
     return handleResponse(response);
   },
 
-  async resolveComplaint(id, resolution) {
-    const response = await fetch(`${BASE_URL}/api/support/complaints/${id}/resolve/`, { 
-      method: 'POST', 
+  // PATCH /api/support/complaints/{id}/ - Resolve or Dismiss
+  // Payload: { status: 'RESOLVED' | 'DISMISSED', resolution: 'text' }
+  async resolveComplaint(id, data) {
+    const response = await fetch(`${BASE_URL}/api/support/complaints/${id}/`, { 
+      method: 'PATCH', 
       headers: getHeaders(), 
-      body: JSON.stringify({ resolution, status: 'RESOLVED' }) 
+      body: JSON.stringify(data) 
     });
     return handleResponse(response);
-  }
+  },
+
+  // POST /api/support/complaints/{id}/escalate/
+  async escalateComplaint(id) {
+    const response = await fetch(`${BASE_URL}/api/support/complaints/${id}/escalate/`, { 
+      method: 'POST', 
+      headers: getHeaders() 
+    });
+    return handleResponse(response);
+  },
+  
 };
